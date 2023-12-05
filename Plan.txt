@@ -1,0 +1,23 @@
+##### In this file we will discuss the structurce & architecture of the project ####
+
+The program will begin by running a main process called Supermarket.
+
+The supermarket process will then fork & exec each cashier. this allows the parent to store the cashiers PIDs.
+
+The supermarket will be responsible for creating (fork & exec) customers. 
+
+In order to keep track of the thresholds, the supermarket will be sensitive to signals that represent different things with different outputs.
+
+each cashier will have a personal Queue where shopping carts will be sent to. 
+
+unless the customers need to be sent back their total amount, they dont need to have personal queues. 
+
+cashiers need to make information about them public for all customers. this is likely to be done via a shared memory. note that we can skip using semaphores
+as race condition is fine in this situation.
+
+if customers/cashiers need to edit quantities of some item, we need semaphores on the file itself.
+
+2 text files, one for parameters and the other for the list of items. 
+
+
+Message queues (Cart) & shared memory (Status): 5 cashier -> 5 shmem segments. each customer connects to all 5 shmems
