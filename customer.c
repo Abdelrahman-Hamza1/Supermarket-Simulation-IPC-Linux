@@ -117,6 +117,7 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
     MESSAGE msg;
     msg.msg_type = index;
     msg.cart = cart;
+    msg.clientId = getpid(); // get customer process ID
 
     // send the message to the cashier
     int err = msgsnd(msgid, &msg, sizeof(msg) - sizeof(long), 0);
