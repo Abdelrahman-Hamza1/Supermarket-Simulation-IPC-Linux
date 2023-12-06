@@ -20,14 +20,13 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <sys/prctl.h>
 
 /* This declaration is *MISSING* is many solaris environments.
    It should be in the <sys/sem.h> file but often is not! If 
    you receive a duplicate definition error message for semun
    then comment out the union declaration.
    */
-
+#define MAX_ITEMS 100
 union semun {
   int              val;
   struct semid_ds *buf;
@@ -41,16 +40,29 @@ struct MEMORY {
   int behaviour;
 }; 
 
+typedef struct {
+  char name[50];
+  int quantity;
+  float price;
+}Item; // each Item in the file has there parameters
+
+typedef struct {
+  Item items[MAX_ITEMS];
+  int itemCount;
+}ShoppingCart; 
+
+
 
 #define SEED   'g'		/* seed for ftok */
 #define SERVER 1L
 #define CLIENT 0L
 
+
 typedef struct {
   long      msg_type;
   /* SHOPPING CART -> for now i'll assume it's just a number that represents how many items*/
-  int items;
-  
+  // I have removed int variable named items
+  ShoppingCart cart;
 } MESSAGE;
 
 
