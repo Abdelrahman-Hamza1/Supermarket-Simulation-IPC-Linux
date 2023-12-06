@@ -1,4 +1,6 @@
 #include "local.h"
+
+int getRandom(int,int);
 int main(int argc, char *argv[]){
   key_t       key; // key for generating msg queue
   pid_t       parent_pid = getppid(); // parent pid for defining the shared memory key
@@ -11,10 +13,11 @@ int main(int argc, char *argv[]){
   struct msqid_ds buf; // to get info on msg queue
 
   int behaviour = 100;
-  int timeToScan = 5; //WILL BE RANDOM LATER ON 
-  int sales =0;
-  int maxSales = 10000; // FROM FILE
+  int timeToScan = getRandom(MINIMUM_SCANNING_TIME, MAXIMUM_SCANNING_TIME); 
+  int sales = 0;
 
+  prctl(PR_SET_PDEATHSIG, SIGHUP); // GET A SIGNAL WHEN PARENT IS KILLED
+  srand((unsigned) getpid());
 
   if(argc != 2){
     perror("Not enough args");
@@ -57,29 +60,39 @@ int main(int argc, char *argv[]){
     memory.timeToScan = timeToScan;
     memory.behaviour = behaviour; /* Update Shared Memory */
 
-    if ((n = msgrcv(mid, &msg, sizeof(message), SERVER, 0)) == -1 ) { /* Start waiting for a message to appear in MQ */
+    if ((n = msgrcv(mid, &msg, sizeof(msg), SERVER, 0)) == -1 ) { /* Start waiting for a message to appear in MQ */
       perror("Server: msgrcv");
       return 2;
     } 
                 
     /* Handle the message (shopping cart) & calculate the total cost */
-    int totalCost =0;
+    int totalCost = 0 ;
 
-    // Send cost back to customer ? ? ? ?  IF NOT -> KILL CUSTOMER (LEAVE SUPER MARKET)
+    /* start by checking if the process is still alive */
+
+    pid_t c_pid; // REAL PID FROM MSG
+    if (kill(c_pid,SIGUSR1) == 0 ){
+      /* Message still up -> handle it */
+    }
+
+
+
+    kill(c_pid,SIGUSR2); /* LET CUSTOMER KNOW YOU'RE DONE PROCESSING THEM!.*/
 
     /* Behaviour will decrease with time, total sales will be increased aswell. Check if conditions met & send signals if so.*/
     behaviour--;
     if (behaviour == 0){
-      kill(getppid(), 2);
+      kill(getppid(), 2); // might have to cast ppid to int 
     }
 
     sales = sales + totalCost;
-    if (sales >= maxSales){
+    if (sales >= INCOME_THRESHOLD){
       kill(getppid(), 12);
     }
-
-    
   }
   return 0;
 }
 
+int getRandom(int min, int max){
+  return (int) (min + (rand() % (max - min)));
+}

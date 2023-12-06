@@ -35,11 +35,7 @@ int main(int argc, char *argv[]){
         }
     }
 
-//     positive behavior dropped to 0 
-//     customers impatient 
-//  cashiers made income t
-    int behaviorMax = 4, customersImpatientMax = 10, currentBehaviour = 0, currentCustomerImpatient = 0;
-
+    int currentBehaviour = 0, currentCustomerImpatient = 0;
 
     if ( sigset(2, signal_catcher) == SIG_ERR ) { // behaviour
         perror("Sigset can not set SIGINT");
@@ -54,24 +50,23 @@ int main(int argc, char *argv[]){
         exit(SIGINT);
     }
 
-
 }
 
 void signal_catcher(int the_sig){
   printf("\nSignal %d received.\n", the_sig);
 
-  switch(the_sig){ /* MUST KILL CHILDREN AS WELL.*/
+  switch(the_sig){
     case 2:
         currentBehaviour++;
         printf("Current Behaviour: %d", currentBehaviour);
-        if(currentBehaviour < behaviorMax){
+        if(currentBehaviour < BEHAVIOUR_THRESHOLD){
             break;
         }
         cleanUp();
         exit(2);
     case 10:
         currentCustomerImpatient++;
-        if(currentCustomerImpatient < customersImpatientMax){
+        if(currentCustomerImpatient < ANGER_THRESHOLD){
             break;
         }
         cleanUp();
@@ -95,11 +90,3 @@ void cleanUp(){
         shmctl(shmid, IPC_RMID, (struct shmid_ds *) 0);
      }
 }
-
-/*
-Cashier 1: Queue + Shmem
-Cashier 2: Queue + Shmem
-Cashier 3: Queue + Shmem
-Cashier 4: Queue + Shmem
-Cashier 5: Queue + Shmem
-*/

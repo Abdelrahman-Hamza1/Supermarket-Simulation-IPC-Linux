@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <sys/prctl.h>
 
 /* This declaration is *MISSING* is many solaris environments.
    It should be in the <sys/sem.h> file but often is not! If 
