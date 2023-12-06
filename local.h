@@ -61,6 +61,7 @@ typedef struct {
 
 typedef struct {
   long      msg_type;
+  int clientId; // client process ID not the index
   /* SHOPPING CART -> for now i'll assume it's just a number that represents how many items*/
   // I have removed int variable named items
   ShoppingCart cart;
