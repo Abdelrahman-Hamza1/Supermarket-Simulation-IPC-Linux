@@ -67,6 +67,19 @@ int main(int argc, char *argv[]){
                 
     /* Handle the message (shopping cart) & calculate the total cost */
     int totalCost = 0 ;
+    int totalCost = 0 ;
+    // THIS CODE ADDED BY NSR
+    printf("Items in the cart:\n");
+    for(int i = 0; i<msg.cart.itemCount;i++) // something wrong about msg.cart.itemCount
+    {
+      printf("For Cashier {%d} %s {Quantity: %d, price: %.2f}\n", index, msg.cart.items[i].name, msg.cart.items[i].price, msg.cart.items[i].price);
+      totalCost += msg.cart.items[i].price; //increase the total coast
+      usleep(19000000); // delay between priniting each item (scaning time)
+    }
+
+    // print the total coast
+    printf("Cashier {%d} Finished\n Sum of prices : %.2f\n", index,totalCost); // regarding index is the id (from the loop) of the cashier
+
 
     /* start by checking if the process is still alive */
 
