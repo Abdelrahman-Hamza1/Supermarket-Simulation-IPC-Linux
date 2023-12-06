@@ -60,9 +60,10 @@ int main(int argc, char *argv[]){
 void signal_catcher(int the_sig){
   printf("\nSignal %d received.\n", the_sig);
 
-  switch(the_sig){
+  switch(the_sig){ /* MUST KILL CHILDREN AS WELL.*/
     case 2:
         currentBehaviour++;
+        printf("Current Behaviour: %d", currentBehaviour);
         if(currentBehaviour < behaviorMax){
             break;
         }

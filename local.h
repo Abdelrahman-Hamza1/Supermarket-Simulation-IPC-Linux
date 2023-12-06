@@ -21,13 +21,6 @@
 #include <stdlib.h>
 #include <errno.h>
 
-
-#define ROWS   5
-#define COLS   3
-
-#define SLOT_LEN  50
-#define N_SLOTS   6
-
 /* This declaration is *MISSING* is many solaris environments.
    It should be in the <sys/sem.h> file but often is not! If 
    you receive a duplicate definition error message for semun
@@ -41,17 +34,42 @@ union semun {
 };
 
 struct MEMORY {
-  char buffer[N_SLOTS][SLOT_LEN];
-  int  head, tail;
+  int queueSize;
+  int numberOfItems;
+  int timeToScan;
+  int behaviour;
 }; 
 
 
 #define SEED   'g'		/* seed for ftok */
-// #define SERVER 1L		/* message for the server */
+#define SERVER 1L
+#define CLIENT 0L
 
 typedef struct {
   long      msg_type;
-  char      buffer[BUFSIZ];
+  /* SHOPPING CART -> for now i'll assume it's just a number that represents how many items*/
+  int items;
+  
 } MESSAGE;
+
+
+// Defining variables
+
+#define MINIMUM_ARRIVAL_RATE 10
+#define MAXIMUM_ARRIVAL_RATE 20
+
+#define MINIMUM_SHOPPING_TIME 10
+#define MANIMUM_SHOPPING_TIME 20
+
+#define MINIMUM_SCANNING_TIME 5
+#define MAXIMUM_SCANNING_TIME 10
+
+#define MAXIMUM_WAITING_TIME 50
+
+#define BEHAVIOUR_THRESHOLD 5
+
+#define ANGER_THRESHOLD 10
+
+#define INCOME_THRESHOLD 10000
 
 #endif
