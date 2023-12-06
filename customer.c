@@ -68,6 +68,22 @@ void simulateShopping(ShoppingCart *cart,Item items[], int itemCount ){
 
 }
 
+void leaveQueue(int signum){
+    kill(getppid(), SIGUSR2);
+    printf("Can't wait in the queue %d", getpid());
+    exit(EXIT_FAILURE);
+}
+
+void stillAlive(int signum){
+    while(1){
+        pause();
+    }
+}
+
+void recieveCashierMessage(int signum){
+    printf("Customer %d has finished.\n", getpid());
+    exit(EXIT_SUCCESS);
+}
 
 // double check this function since abd used struct, not typedef
 int bestCashier(int cashiersNumber){
@@ -125,6 +141,16 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
          perror("Error sending the message\n");
         exit(EXIT_FAILURE);
     }
+    signal(SIGALRM, leaveQueue); // to handle the alarm signal
+    alarm(20); // wait 20 second in the queue
+    while(1){
+        pause();
+    }
+
+    signal(SIGUSR1, stillAlive); // to handle the signal sent by the cashier to check if the customer is still alive
+
+    signal(SIGUSR2, recieveCashierMessage);
+    // to handle the signal sent by the cashier that the payment went well.
 
 
 }
