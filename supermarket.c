@@ -1,18 +1,25 @@
 #include "local.h"
 
+ int currentBehaviour = 0, currentCustomerImpatient = 0;
+
 void signal_catcher(int );
 void cleanUp();
 int main(int argc, char *argv[]){
 
-    int numberOfServers = 5;
+    int numberOfServers = 1;
+    char buff[20];
+    sprintf(buff, "%d", numberOfServers);
+
     for (int i = 0 ; i < numberOfServers ; i++){
         switch (fork()) {
             case -1:
             perror("Cashier: fork");
             return 2;
 
-            case 0:          
-            execlp("./cashier", "cashier", i, "&", 0);
+            case 0:
+            char buffer[20];
+            sprintf(buffer, "%d", i);          
+            execlp("./cashier", "cashier", buffer, "&", 0);
             perror("Cashier: exec");
             return 3;
         }
@@ -29,13 +36,13 @@ int main(int argc, char *argv[]){
             return 2;
 
             case 0:          
-            execlp("./customer", "customer", numberOfServers, "&", 0);
+            execlp("./customer", "customer", buff, "&", 0);
             perror("customer: exec");
             return 3;
         }
     }
 
-    int currentBehaviour = 0, currentCustomerImpatient = 0;
+   
 
     if ( sigset(2, signal_catcher) == SIG_ERR ) { // behaviour
         perror("Sigset can not set SIGINT");
@@ -79,6 +86,7 @@ void signal_catcher(int the_sig){
 
 void cleanUp(){
     // MSG QUEUE -> ID => CHARACTER BASED ||||| SHMEM -> ID -> PPID + index
+    struct MEMORY mem;
     int  pid = (int) getpid();
      for (int i = 0 ; i < 5 ; i++){
         key_t key = ftok(".", SEED + i);
@@ -86,7 +94,7 @@ void cleanUp(){
         msgctl(mid, IPC_RMID, (struct msgid_ds *) 0); /* remove first message queue*/
         
         
-        int shmid = shmget(pid + i, sizeof(MEMORY), IPC_CREAT | 0666); // POSSIBLE: CHANGE LAST ARG TO 0 
+        int shmid = shmget(pid + i, sizeof(mem), IPC_CREAT | 0666); // POSSIBLE: CHANGE LAST ARG TO 0 
         shmctl(shmid, IPC_RMID, (struct shmid_ds *) 0);
      }
 }

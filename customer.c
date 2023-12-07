@@ -63,7 +63,7 @@ void simulateShopping(ShoppingCart *cart,Item items[], int itemCount ){
             printf("%s is out of stock.\n", items[randomItemIndedx].name);
         }
         // delay to simulate customer shopping speed
-        sleep(rand % 3 +1);
+        sleep(rand() % 3 +1);
     }
 
 }
@@ -209,7 +209,7 @@ int main(int args, char*argv[]){
     wieghts[1] = -1;
     wieghts[2] = 2;
     wieghts[3] = 1;
-    int best_cashier_index = bestCashier(numberOfCashier, wieghts[]);
+    int best_cashier_index = bestCashier(numberOfCashier, wieghts);
 
     // connect to the message queue
     connect_to_the_message_queue(best_cashier_index, cart);
