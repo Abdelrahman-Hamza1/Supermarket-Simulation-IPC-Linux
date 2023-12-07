@@ -83,7 +83,7 @@ int main(int argc, char *argv[]){
       printf("CASHIER: Items in the cart:\n");
       for(int i = 0; i<msg.cart.itemCount;i++) // something wrong about msg.cart.itemCount
       {
-        printf("CASHIER: {%d} %s {Quantity: %d, price: %.2f}\n", index, msg.cart.items[i].name, msg.cart.items[i].price, msg.cart.items[i].price);
+        printf("CASHIER: {%d} %s {Quantity: %d, price: %.2f}\n", index, msg.cart.items[i].name, msg.cart.items[i].quantity, msg.cart.items[i].price);
         totalCost += msg.cart.items[i].price; //increase the total coast
         usleep(19000000); // delay between priniting each item (scaning time)
       } 
