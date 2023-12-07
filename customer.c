@@ -56,7 +56,7 @@ void simulateShopping(ShoppingCart *cart,Item items[], int itemCount ){
             // decrement quantity by one and add item to the cart
             items[randomItemIndedx].quantity--;
             addToCart(cart, &items[randomItemIndedx]);
-            //printf("CUSTOMER: Added %s to the cart.\n", items[randomItemIndedx].name);
+            printf("CUSTOMER {%d}: Added %s to the cart.\n", getpid(),items[randomItemIndedx].name);
         }
 
         else{
@@ -71,11 +71,12 @@ void simulateShopping(ShoppingCart *cart,Item items[], int itemCount ){
 
 void leaveQueue(int signum){
     kill(getppid(), SIGUSR1);
-    printf("CUSTOMER: Can't wait in the queue %d\n", getpid());
+    printf("CUSTOMER {%d}: Can't wait in the queue %d\n", getpid(),getpid());
     exit(EXIT_FAILURE);
 }
 
 void stillAlive(int signum){
+    printf("CUSTOMER {%d} yes I am still availible\n\n",getegid());
     while(1){
         pause();
     }
@@ -94,7 +95,7 @@ int bestCashier(int cashiersNumber,int weights[]){
          perror("CUSTOMER: Error getting parent id\n");
         exit(EXIT_FAILURE);
     }
-    printf("CUSTOMER: %d is currently looking for best cashier!\n", (int)getpid());
+    printf("CUSTOMER{%d}: is currently looking for best cashier!\n", (int)getpid());
 
     int shmId;
     struct MEMORY * memory[cashiersNumber]; // to hold cashier status
@@ -114,7 +115,7 @@ int bestCashier(int cashiersNumber,int weights[]){
         
         // make the 'memory point to the shared memory'
         memory[i] = (struct MEMORY *)shmptr;
-        printf("CUSTOMER: %d Just read Shmem %d\n Size %d Number of items%d time to scan %d behaviour %d\n", (int)getpid(), i, memory[i]->queueSize, memory[i]->numberOfItems , memory[i]->timeToScan, memory[i]->behaviour);
+        printf("CUSTOMER{%d}: Just read Shmem %d\n Size %d Number of items%d time to scan %d behaviour %d\n", (int)getpid(), i, memory[i]->queueSize, memory[i]->numberOfItems , memory[i]->timeToScan, memory[i]->behaviour);
     }
 
     // let's compare cashiers
@@ -135,7 +136,7 @@ int bestCashier(int cashiersNumber,int weights[]){
 
 
 
-    printf("CUSTOMER: %d I have decided to go with cashier index = [%d] \n", (int)getpid(), index);
+    printf("CUSTOMER{%d}: I have decided to go with cashier index = [%d] \n", (int)getpid(), index);
     return index; // this must be modified to return the best cashier index
 }
 
@@ -171,16 +172,24 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
         exit(EXIT_FAILURE);
     }
 
-    signal(SIGALRM, leaveQueue); // to handle the alarm signal
+    if(sigset(SIGALRM, leaveQueue)){ // to handle the alarm signal
+        perror("Sigset can not set SIGALRM");
+        exit(SIGALRM);
+     }
     alarm(20); // wait 20 second in the queue
    
     while(1){
         pause();
     }
 
-    signal(SIGUSR1, stillAlive); // to handle the signal sent by the cashier to check if the customer is still alive
-
-    signal(SIGUSR2, recieveCashierMessage);
+    if(sigset(SIGUSR1, stillAlive) == -1){ // to handle the signal sent by the cashier to check if the customer is still alive
+        perror("Sigset can not set SIGUSR1");
+        exit(SIGUSR1);
+    }
+    if(sigset(SIGUSR2, recieveCashierMessage) == -1){
+        perror("Sigset can not set SIGUSR2");
+        exit(SIGUSR2);
+    }
     // to handle the signal sent by the cashier that the payment went well.
 
 
@@ -190,6 +199,7 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
 int main(int args, char*argv[]){
     prctl(PR_SET_PDEATHSIG, SIGHUP); // GET A SIGNAL WHEN PARENT IS KILLED
     int numberOfCashier = 0; // passed by argument
+  
 
     if (args < 2){
         perror("CUSTOMER: Number of args is less than 2\n");
@@ -209,6 +219,7 @@ int main(int args, char*argv[]){
     // seed the random number generator with the current time
     srand(time(NULL));
     //SIMULATE SHOPPING
+    printf("\nCustomer {%d} has started shopping\n",getpid());
     ShoppingCart cart;
     cart.itemCount = 0;
     simulateShopping(&cart, items, itemCount);
