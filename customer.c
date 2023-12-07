@@ -96,16 +96,23 @@ int bestCashier(int cashiersNumber,int weights[]){
 
     int shmId;
     struct MEMORY * memory[cashiersNumber]; // to hild cashier status
-
+    char          *shmptr;
     // connect to shared memory for each cashier
     for(int i =0; i < cashiersNumber; i++){
-        shmId = shmget(((int)ppid) + i, sizeof(memory), IPC_CREAT | 0666);
+        shmId = shmget(((int)ppid) + i, sizeof(memory), 0);
         if(shmId == -1){
             perror("CUSTOMER: Error connecting to shared memory\n");
             exit(EXIT_FAILURE);
         }
+        if ( (shmptr = (struct MEMORY *) shmat(shmId, 0, 0)) == (char *) -1 ) {
+            perror("shmptr -- parent -- attach");
+            exit(1);
+        }
+        
+        
         // make the 'memory point to the shared memory'
-        memory[i] = (struct MESSAGE *)shmat((shmId),NULL,0);
+        memory[i] = (struct MEMORY *)shmptr;
+        printf("HIHIHIHI %d %d %d %d\n", memory[i]->queueSize, memory[i]->numberOfItems , memory[i]->timeToScan, memory[i]->behaviour);
     }
 
     // let's compare cashiers
@@ -126,9 +133,8 @@ int bestCashier(int cashiersNumber,int weights[]){
 
 
 
-
+    printf("INDEX = [%d] \n", index);
     return index; // this must be modified to return the best cashier index
-
 }
 
 
@@ -149,10 +155,12 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
     }
 
     // create a message
+    printf("CUSTOMER: MSGQID = %d\n", msgid);
     MESSAGE msg;
-    msg.msg_type = index;
+    msg.msg_type = SERVER;
     msg.cart = cart;
     msg.clientId = getpid(); // get customer process ID
+
 
     // send the message to the cashier
     int err = msgsnd(msgid, &msg, sizeof(msg), 0);

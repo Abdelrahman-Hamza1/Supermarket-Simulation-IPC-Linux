@@ -7,7 +7,7 @@ int main(int argc, char *argv[]){
   int         mid, n,shmid; // msg queue id, n for reading ( will store char count) , shmid (shared memory id)
   MESSAGE     msg; // instance of message struct 
 
-  static struct  MEMORY memory; // memory struct
+  struct  MEMORY* memory; // memory struct
   char          *shmptr; // pointer to shared memory 
   union semun    arg; // arg for later use
   struct msqid_ds buf; // to get info on msg queue
@@ -25,14 +25,14 @@ int main(int argc, char *argv[]){
   }
 
   int index = atoi(argv[1]);
-  printf("\nCASHIER: Parent Pid: %d\n", parent_pid);
+  printf("\nCASHIER: Parent Pid: %d, Index: %d\n", parent_pid, index);
   
   if ((key = ftok(".", SEED + index)) == -1) {    
     perror("CASHIER:  Client: key generation");
     return 1;
   }
 
-  if ((mid = msgget(key, 0 )) == -1 ) {        
+  if ((mid = msgget(key, 0 )) == -1 ) {
     mid = msgget(key,IPC_CREAT | 0660);
   }
   printf("\nCASHIER: SUCCESSFULY CREATED MQ! %d\n", mid);
@@ -45,7 +45,8 @@ int main(int argc, char *argv[]){
       perror("shmptr -- parent -- attach");
       exit(1);
     }
-    memcpy(shmptr, (struct MEMORY *) &memory, sizeof(memory));
+    //memcpy(shmptr, (struct MEMORY *) &memory, sizeof(memory));
+    memory = (struct MEMORY *) shmptr;
     printf("CASHIER: SUCCESSFULY CREATED SHMEM! %d\n", shmid);
   }
   else {
@@ -58,10 +59,10 @@ int main(int argc, char *argv[]){
     printf("CASHIER: Current # of bytes on queue\t %d\n", buf.msg_cbytes);
     printf("CASHIER: Current # of messages on queue\t %d\n", buf.msg_qnum); /* Read Queue Status to update Shared Memory*/
 
-    memory.queueSize = buf.msg_qnum;
-    memory.numberOfItems = buf.msg_cbytes; // MUST DO EQUATION TO CALCULATE NUMBER OF ITEMS BASED ON SIZE -> AFTER DEFININE THE SHOPPING CART STRUCT
-    memory.timeToScan = timeToScan;
-    memory.behaviour = behaviour; /* Update Shared Memory */
+    memory->queueSize = buf.msg_qnum;
+    memory->numberOfItems = buf.msg_cbytes; // MUST DO EQUATION TO CALCULATE NUMBER OF ITEMS BASED ON SIZE -> AFTER DEFININE THE SHOPPING CART STRUCT
+    memory->timeToScan = timeToScan;
+    memory->behaviour = behaviour; /* Update Shared Memory */
 
     if ((n = msgrcv(mid, &msg, sizeof(msg), SERVER, 0)) == -1 ) { /* Start waiting for a message to appear in MQ */
       perror("CASHIER:  msgrcv error");
