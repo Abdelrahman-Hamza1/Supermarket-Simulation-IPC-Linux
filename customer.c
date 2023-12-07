@@ -56,7 +56,7 @@ void simulateShopping(ShoppingCart *cart,Item items[], int itemCount ){
             // decrement quantity by one and add item to the cart
             items[randomItemIndedx].quantity--;
             addToCart(cart, &items[randomItemIndedx]);
-            printf("CUSTOMER: Added %s to the cart.\n", items[randomItemIndedx].name);
+            //printf("CUSTOMER: Added %s to the cart.\n", items[randomItemIndedx].name);
         }
 
         else{
@@ -65,6 +65,7 @@ void simulateShopping(ShoppingCart *cart,Item items[], int itemCount ){
         // delay to simulate customer shopping speed
         sleep(rand() % 3 +1);
     }
+    printf("CUSTOMER: ID = %d Has just finished shopping! ", (int)getpid());
 
 }
 
@@ -93,9 +94,10 @@ int bestCashier(int cashiersNumber,int weights[]){
          perror("CUSTOMER: Error getting parent id\n");
         exit(EXIT_FAILURE);
     }
+    printf("CUSTOMER: %d is currently looking for best cashier!", (int)getpid());
 
     int shmId;
-    struct MEMORY * memory[cashiersNumber]; // to hild cashier status
+    struct MEMORY * memory[cashiersNumber]; // to hold cashier status
     char          *shmptr;
     // connect to shared memory for each cashier
     for(int i =0; i < cashiersNumber; i++){
@@ -112,7 +114,7 @@ int bestCashier(int cashiersNumber,int weights[]){
         
         // make the 'memory point to the shared memory'
         memory[i] = (struct MEMORY *)shmptr;
-        printf("HIHIHIHI %d %d %d %d\n", memory[i]->queueSize, memory[i]->numberOfItems , memory[i]->timeToScan, memory[i]->behaviour);
+        printf("CUSTOMER: %d Just read Shmem %d\n Size %d Number of items%d time to scan %d behaviour %d\n", (int)getpid(), i, memory[i]->queueSize, memory[i]->numberOfItems , memory[i]->timeToScan, memory[i]->behaviour);
     }
 
     // let's compare cashiers
@@ -133,7 +135,7 @@ int bestCashier(int cashiersNumber,int weights[]){
 
 
 
-    printf("INDEX = [%d] \n", index);
+    printf("CUSTOMER: %d I have decided to go with cashier index = [%d] \n", (int)getpid(), index);
     return index; // this must be modified to return the best cashier index
 }
 
@@ -155,7 +157,7 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
     }
 
     // create a message
-    printf("CUSTOMER: MSGQID = %d\n", msgid);
+    printf("CUSTOMER: CONNECTED TO MSGQID = %d\n", msgid);
     MESSAGE msg;
     msg.msg_type = SERVER;
     msg.cart = cart;
