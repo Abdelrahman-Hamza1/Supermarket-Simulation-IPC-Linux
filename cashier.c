@@ -33,7 +33,7 @@ int main(int argc, char *argv[]){
   }
 
   if ((mid = msgget(key, 0 )) == -1 ) {
-    mid = msgget(key,IPC_CREAT | 0660);
+    mid = msgget(key,IPC_CREAT | 0666);
   }
   printf("\nCASHIER: SUCCESSFULY CREATED MQ! id =  %d \n", mid);
 

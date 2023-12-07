@@ -1,12 +1,12 @@
 #include "local.h"
 
- int currentBehaviour = 0, currentCustomerImpatient = 0;
+ int currentBehaviour = 0, currentCustomerImpatient =0,  numberOfServers = 1;
 
 void signal_catcher(int );
 void cleanUp();
 int main(int argc, char *argv[]){
 
-    int numberOfServers = 1;
+    
     char buff[20];
     sprintf(buff, "%d", numberOfServers);
 
@@ -23,6 +23,18 @@ int main(int argc, char *argv[]){
             perror("Cashier: exec");
             return 3;
         }
+    }
+        if ( sigset(2, signal_catcher) == SIG_ERR ) { // behaviour
+        perror("Sigset can not set SIGINT");
+        exit(SIGINT);
+    }
+    if ( sigset(10, signal_catcher) == SIG_ERR ) { // customers
+        perror("Sigset can not set SIGINT");
+        exit(SIGINT);
+    }
+    if ( sigset(12, signal_catcher) == SIG_ERR ) { // income
+        perror("Sigset can not set SIGINT");
+        exit(SIGINT);
     }
 
     int sleepTime = 10;
@@ -41,22 +53,6 @@ int main(int argc, char *argv[]){
             return 3;
         }
     }
-
-   
-
-    if ( sigset(2, signal_catcher) == SIG_ERR ) { // behaviour
-        perror("Sigset can not set SIGINT");
-        exit(SIGINT);
-    }
-    if ( sigset(10, signal_catcher) == SIG_ERR ) { // customers
-        perror("Sigset can not set SIGINT");
-        exit(SIGINT);
-    }
-    if ( sigset(12, signal_catcher) == SIG_ERR ) { // income
-        perror("Sigset can not set SIGINT");
-        exit(SIGINT);
-    }
-
 }
 
 void signal_catcher(int the_sig){
@@ -86,15 +82,16 @@ void signal_catcher(int the_sig){
 
 void cleanUp(){
     // MSG QUEUE -> ID => CHARACTER BASED ||||| SHMEM -> ID -> PPID + index
+    printf("PARENT CLEANING UP!\n");
     struct MEMORY mem;
     int  pid = (int) getpid();
-     for (int i = 0 ; i < 5 ; i++){
+     for (int i = 0 ; i < numberOfServers ; i++){
         key_t key = ftok(".", SEED + i);
-        int mid = msgget(key, IPC_CREAT | 0666);
+        int mid = msgget(key, 0);
         msgctl(mid, IPC_RMID, (struct msgid_ds *) 0); /* remove first message queue*/
         
         
-        int shmid = shmget(pid + i, sizeof(mem), IPC_CREAT | 0666); // POSSIBLE: CHANGE LAST ARG TO 0 
+        int shmid = shmget(pid + i, sizeof(mem), 0); // POSSIBLE: CHANGE LAST ARG TO 0 
         shmctl(shmid, IPC_RMID, (struct shmid_ds *) 0);
      }
 }

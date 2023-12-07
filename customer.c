@@ -65,13 +65,13 @@ void simulateShopping(ShoppingCart *cart,Item items[], int itemCount ){
         // delay to simulate customer shopping speed
         sleep(rand() % 3 +1);
     }
-    printf("CUSTOMER: ID = %d Has just finished shopping! ", (int)getpid());
+    printf("CUSTOMER: ID = %d Has just finished shopping! \n", (int)getpid());
 
 }
 
 void leaveQueue(int signum){
-    kill(getppid(), SIGUSR2);
-    printf("CUSTOMER: Can't wait in the queue %d", getpid());
+    kill(getppid(), SIGUSR1);
+    printf("CUSTOMER: Can't wait in the queue %d\n", getpid());
     exit(EXIT_FAILURE);
 }
 
@@ -94,7 +94,7 @@ int bestCashier(int cashiersNumber,int weights[]){
          perror("CUSTOMER: Error getting parent id\n");
         exit(EXIT_FAILURE);
     }
-    printf("CUSTOMER: %d is currently looking for best cashier!", (int)getpid());
+    printf("CUSTOMER: %d is currently looking for best cashier!\n", (int)getpid());
 
     int shmId;
     struct MEMORY * memory[cashiersNumber]; // to hold cashier status
