@@ -86,7 +86,7 @@ int main(int argc, char *argv[]){
         printf("CASHIER: {%d} %s {Quantity: %d, price: %.2f}\n", index, msg.cart.items[i].name, msg.cart.items[i].price, msg.cart.items[i].price);
         totalCost += msg.cart.items[i].price; //increase the total coast
         usleep(19000000); // delay between priniting each item (scaning time)
-      }
+      } 
       // print the total coast
       printf("CASHIER: id = {%d} Finished\n Sum of prices : %.2f\n", index,totalCost); // regarding index is the id (from the loop) of the cashier
     }
