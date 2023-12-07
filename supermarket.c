@@ -38,20 +38,24 @@ int main(int argc, char *argv[]){
     }
 
     int sleepTime = 10;
+    
     while(1){
         sleep(10);
 
         // Create Client
-        switch (fork()) {
-            case -1:
-            perror("Client: fork");
-            return 2;
+      
+            switch (fork()) {
+                case -1:
+                perror("Client: fork");
+                return 2;
 
-            case 0:          
+            case 0:        
             execlp("./customer", "customer", buff, "&", 0);
             perror("customer: exec");
             return 3;
-        }
+     
+            }
+      
     }
 }
 
