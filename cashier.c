@@ -56,13 +56,13 @@ int main(int argc, char *argv[]){
 
   while(1){
     msgctl(mid, IPC_STAT, &buf);
-    printf("CASHIER: Current # of bytes on queue\t %d\n", buf.msg_cbytes);
+    printf("CASHIER: Current # of bytes on queue\t %d\n", buf.__msg_cbytes);
     printf("CASHIER: Current # of messages on queue\t %d\n", buf.msg_qnum); /* Read Queue Status to update Shared Memory*/
     printf("CASHIER: Time to scan = %d\n", timeToScan);
     printf("CASHIER: Behaviour = %d\n", behaviour);
 
     memory->queueSize = buf.msg_qnum;
-    memory->numberOfItems = buf.msg_cbytes; // MUST DO EQUATION TO CALCULATE NUMBER OF ITEMS BASED ON SIZE -> AFTER DEFININE THE SHOPPING CART STRUCT
+    memory->numberOfItems = buf.__msg_cbytes; // MUST DO EQUATION TO CALCULATE NUMBER OF ITEMS BASED ON SIZE -> AFTER DEFININE THE SHOPPING CART STRUCT
     memory->timeToScan = timeToScan;
     memory->behaviour = behaviour; /* Update Shared Memory */
 
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]){
       return 2;
     }
     printf("CASHIER: Just recieved message by : %d\nCASHIER: Now testing to see if he's still available!\n", (int)msg.clientId);
-                
+    printf("CUSTOMER CART items count : %d\n",msg.cart.itemCount);    
     /* Handle the message (shopping cart) & calculate the total cost */
     int totalCost = 0 ;
 
@@ -80,15 +80,15 @@ int main(int argc, char *argv[]){
     pid_t c_pid = msg.clientId; // REAL PID FROM MSG
     if (kill(c_pid,SIGUSR1) == 0 ){
       /* Message still up -> handle it */
-      printf("CASHIER: Items in the cart:\n");
+      printf("CASHIER: Items in the cart:\n\n");
       for(int i = 0; i<msg.cart.itemCount;i++) // something wrong about msg.cart.itemCount
       {
-        printf("CASHIER: {%d} %s {Quantity: %d, price: %.2f}\n", index, msg.cart.items[i].name, msg.cart.items[i].quantity, msg.cart.items[i].price);
+        printf("CASHIER: {%d} %s {Quantity: %d, price: %.2f}\n\n", index, msg.cart.items[i].name, msg.cart.items[i].quantity, msg.cart.items[i].price);
         totalCost += msg.cart.items[i].price; //increase the total coast
-        usleep(19000000); // delay between priniting each item (scaning time)
+        usleep(190000); // delay between priniting each item (scaning time) (change it and put cashier speed)
       } 
       // print the total coast
-      printf("CASHIER: id = {%d} Finished\n Sum of prices : %.2f\n", index,totalCost); // regarding index is the id (from the loop) of the cashier
+      printf("CASHIER: id = {%d} Finished\n Sum of prices : %d\n", index,totalCost); // regarding index is the id (from the loop) of the cashier
     }
 
 
