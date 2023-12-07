@@ -86,7 +86,7 @@ void recieveCashierMessage(int signum){
 }
 
 // double check this function since abd used struct, not typedef
-int bestCashier(int cashiersNumber){
+int bestCashier(int cashiersNumber,int weights[]){
     // for loop, read from each cashier shared memory
     pid_t ppid = getppid(); // parent pid
     if (ppid == -1){
@@ -98,17 +98,36 @@ int bestCashier(int cashiersNumber){
     struct MEMORY * memory[cashiersNumber]; // to hild cashier status
 
     // connect to shared memory for each cashier
-    for(int i =1; i <= cashiersNumber; i++){
+    for(int i =0; i < cashiersNumber; i++){
         shmId = shmget(((int)ppid) + i, sizeof(memory), IPC_CREAT | 0666);
         if(shmId == -1){
             perror("Error connecting to shared memory\n");
             exit(EXIT_FAILURE);
         }
         // make the 'memory point to the shared memory'
-        memory[i-1] = (struct MESSAGE *)shamt((shmId),NULL,0);
+        memory[i] = (struct MESSAGE *)shamt((shmId),NULL,0);
     }
 
-    return 1; // this must be modified to return the best cashier index
+    // let's compare cashiers
+    int evaluation[cashiersNumber]; // to calculate rating of each cashier
+    for(int i =0; i<cashiersNumber;i++){
+        evaluation[i] = memory[i]->queueSize*weights[0] + memory[i]->numberOfItems * weights[1] + memory[i]->timeToScan * weights[2] + memory[i]->behaviour*weights[3];
+    }
+
+    int max = evaluation[0], index = 0;
+
+    // find the highest evaluation
+    for(int i=0;i<cashiersNumber;i++){
+        if(max < evaluation[i]){
+            max=evaluation[i];
+            index = i;
+        }
+    }
+
+
+
+
+    return index; // this must be modified to return the best cashier index
 
 }
 
@@ -117,7 +136,7 @@ int bestCashier(int cashiersNumber){
 // here check 'SEED', and index-1 (since I have started from 1 not 0)
 void connect_to_the_message_queue(int index, ShoppingCart cart){
     // create key
-    __key_t key = ftok(".", SEED + index - 1);
+    __key_t key = ftok(".", SEED + index );
     if (key == -1){
         perror("Error creating key\n");
         exit(EXIT_FAILURE);
@@ -141,8 +160,10 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
          perror("Error sending the message\n");
         exit(EXIT_FAILURE);
     }
+
     signal(SIGALRM, leaveQueue); // to handle the alarm signal
     alarm(20); // wait 20 second in the queue
+   
     while(1){
         pause();
     }
@@ -183,7 +204,12 @@ int main(int args, char*argv[]){
     simulateShopping(&cart, items, itemCount);
 
     // choose the best cashier
-    int best_cashier_index = bestCashier(numberOfCashier);
+    int wieghts[4];
+    wieghts[0] = -1;
+    wieghts[1] = -1;
+    wieghts[2] = 2;
+    wieghts[3] = 1;
+    int best_cashier_index = bestCashier(numberOfCashier, wieghts[]);
 
     // connect to the message queue
     connect_to_the_message_queue(best_cashier_index, cart);
