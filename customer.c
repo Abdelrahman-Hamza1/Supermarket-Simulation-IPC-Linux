@@ -4,7 +4,7 @@ int readSuperMarketData(Item items[], int *itemCount){
     FILE* file = fopen("data.txt","r"); //open file
 
     if (file == NULL) {
-        printf("ERROR OPENING THE FILE\n");
+        printf("CUSTOMER: ERROR OPENING THE FILE\n");
         return 0;
     }
 
@@ -17,7 +17,7 @@ int readSuperMarketData(Item items[], int *itemCount){
 
         // check if the array is full
         if(*itemCount >= MAX_ITEMS){
-            printf("TOO many items in the file.\n");
+            printf("CUSTOMER: TOO many items in the file.\n");
             break;
         }
     }
@@ -40,7 +40,7 @@ void addToCart(ShoppingCart *cart, Item*item){
         cart->itemCount++;
     }
     else{
-        printf("The cart is full.\n");
+        printf("CUSTOMER: The cart is full.\n");
     }
 }
 
@@ -56,11 +56,11 @@ void simulateShopping(ShoppingCart *cart,Item items[], int itemCount ){
             // decrement quantity by one and add item to the cart
             items[randomItemIndedx].quantity--;
             addToCart(cart, &items[randomItemIndedx]);
-            printf("Added %s to the cart.\n", items[randomItemIndedx].name);
+            printf("CUSTOMER: Added %s to the cart.\n", items[randomItemIndedx].name);
         }
 
         else{
-            printf("%s is out of stock.\n", items[randomItemIndedx].name);
+            printf("CUSTOMER: %s is out of stock.\n", items[randomItemIndedx].name);
         }
         // delay to simulate customer shopping speed
         sleep(rand() % 3 +1);
@@ -70,7 +70,7 @@ void simulateShopping(ShoppingCart *cart,Item items[], int itemCount ){
 
 void leaveQueue(int signum){
     kill(getppid(), SIGUSR2);
-    printf("Can't wait in the queue %d", getpid());
+    printf("CUSTOMER: Can't wait in the queue %d", getpid());
     exit(EXIT_FAILURE);
 }
 
@@ -81,7 +81,7 @@ void stillAlive(int signum){
 }
 
 void recieveCashierMessage(int signum){
-    printf("Customer %d has finished.\n", getpid());
+    printf("CUSTOMER: Customer %d has finished.\n", getpid());
     exit(EXIT_SUCCESS);
 }
 
@@ -90,7 +90,7 @@ int bestCashier(int cashiersNumber,int weights[]){
     // for loop, read from each cashier shared memory
     pid_t ppid = getppid(); // parent pid
     if (ppid == -1){
-         perror("Error getting parent id\n");
+         perror("CUSTOMER: Error getting parent id\n");
         exit(EXIT_FAILURE);
     }
 
@@ -101,7 +101,7 @@ int bestCashier(int cashiersNumber,int weights[]){
     for(int i =0; i < cashiersNumber; i++){
         shmId = shmget(((int)ppid) + i, sizeof(memory), IPC_CREAT | 0666);
         if(shmId == -1){
-            perror("Error connecting to shared memory\n");
+            perror("CUSTOMER: Error connecting to shared memory\n");
             exit(EXIT_FAILURE);
         }
         // make the 'memory point to the shared memory'
@@ -138,13 +138,13 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
     // create key
     __key_t key = ftok(".", SEED + index );
     if (key == -1){
-        perror("Error creating key\n");
+        perror("CUSTOMER: Error creating key\n");
         exit(EXIT_FAILURE);
     }
 
-    int msgid = msgget(key, IPC_CREAT | 0666); // get msg queue id
+    int msgid = msgget(key, 0); // get msg queue id
     if (msgid == -1){
-         perror("Error making the message queue\n");
+         perror("CUSTOMER: Error making the message queue\n");
         exit(EXIT_FAILURE);
     }
 
@@ -155,9 +155,9 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
     msg.clientId = getpid(); // get customer process ID
 
     // send the message to the cashier
-    int err = msgsnd(msgid, &msg, sizeof(msg) - sizeof(long), 0);
+    int err = msgsnd(msgid, &msg, sizeof(msg), 0);
     if(err == -1){
-         perror("Error sending the message\n");
+         perror("CUSTOMER: Error sending the message\n");
         exit(EXIT_FAILURE);
     }
 
@@ -182,7 +182,7 @@ int main(int args, char*argv[]){
     int numberOfCashier = 0; // passed by argument
 
     if (args < 2){
-        perror("Number of args is less than 2\n");
+        perror("CUSTOMER: Number of args is less than 2\n");
         exit(EXIT_FAILURE);
     }
     else{

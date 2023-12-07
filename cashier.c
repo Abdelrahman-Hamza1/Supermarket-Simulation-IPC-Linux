@@ -19,23 +19,25 @@ int main(int argc, char *argv[]){
   prctl(PR_SET_PDEATHSIG, SIGHUP); // GET A SIGNAL WHEN PARENT IS KILLED
   srand((unsigned) getpid());
 
-  if(argc != 2){
-    perror("Not enough args");
+  if(argc < 2){
+    perror("CASHIER: Not enough args");
     exit(-2);
   }
 
   int index = atoi(argv[1]);
-  printf("\nParent Pid: %d\n", parent_pid);
+  printf("\nCASHIER: Parent Pid: %d\n", parent_pid);
   
   if ((key = ftok(".", SEED + index)) == -1) {    
-    perror("Client: key generation");
+    perror("CASHIER:  Client: key generation");
     return 1;
   }
 
   if ((mid = msgget(key, 0 )) == -1 ) {        
     mid = msgget(key,IPC_CREAT | 0660);
   }
+  printf("\nCASHIER: SUCCESSFULY CREATED MQ! %d\n", mid);
 
+  
     if ( (shmid = shmget((int)parent_pid + index, sizeof(memory),
 		       IPC_CREAT | 0666)) != -1 ) {
     
@@ -44,6 +46,7 @@ int main(int argc, char *argv[]){
       exit(1);
     }
     memcpy(shmptr, (struct MEMORY *) &memory, sizeof(memory));
+    printf("CASHIER: SUCCESSFULY CREATED SHMEM! %d\n", shmid);
   }
   else {
     perror("shmid -- parent -- creation");
@@ -52,8 +55,8 @@ int main(int argc, char *argv[]){
 
   while(1){
     msgctl(mid, IPC_STAT, &buf);
-    printf("Current # of bytes on queue\t %d\n", buf.msg_cbytes);
-    printf("Current # of messages on queue\t %d\n", buf.msg_qnum); /* Read Queue Status to update Shared Memory*/
+    printf("CASHIER: Current # of bytes on queue\t %d\n", buf.msg_cbytes);
+    printf("CASHIER: Current # of messages on queue\t %d\n", buf.msg_qnum); /* Read Queue Status to update Shared Memory*/
 
     memory.queueSize = buf.msg_qnum;
     memory.numberOfItems = buf.msg_cbytes; // MUST DO EQUATION TO CALCULATE NUMBER OF ITEMS BASED ON SIZE -> AFTER DEFININE THE SHOPPING CART STRUCT
@@ -61,7 +64,7 @@ int main(int argc, char *argv[]){
     memory.behaviour = behaviour; /* Update Shared Memory */
 
     if ((n = msgrcv(mid, &msg, sizeof(msg), SERVER, 0)) == -1 ) { /* Start waiting for a message to appear in MQ */
-      perror("Server: msgrcv");
+      perror("CASHIER:  msgrcv error");
       return 2;
     } 
                 
@@ -70,7 +73,8 @@ int main(int argc, char *argv[]){
 
     /* start by checking if the process is still alive */
 
-    pid_t c_pid; // REAL PID FROM MSG
+    pid_t c_pid = msg.clientId; // REAL PID FROM MSG
+    printf("CASHIER:  testing client id %s\n", (int)c_pid);
     if (kill(c_pid,SIGUSR1) == 0 ){
       /* Message still up -> handle it */
       printf("Items in the cart:\n");
@@ -85,7 +89,7 @@ int main(int argc, char *argv[]){
     }
 
 
-
+    printf("CASHIER:  informing client id %s\n", (int)c_pid);
     kill(c_pid,SIGUSR2); /* LET CUSTOMER KNOW YOU'RE DONE PROCESSING THEM!.*/
 
     /* Behaviour will decrease with time, total sales will be increased aswell. Check if conditions met & send signals if so.*/
