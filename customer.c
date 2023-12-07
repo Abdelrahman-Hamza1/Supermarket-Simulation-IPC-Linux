@@ -105,7 +105,7 @@ int bestCashier(int cashiersNumber,int weights[]){
             exit(EXIT_FAILURE);
         }
         // make the 'memory point to the shared memory'
-        memory[i] = (struct MESSAGE *)shamt((shmId),NULL,0);
+        memory[i] = (struct MESSAGE *)shmat((shmId),NULL,0);
     }
 
     // let's compare cashiers
