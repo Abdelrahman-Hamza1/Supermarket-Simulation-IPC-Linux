@@ -1,16 +1,15 @@
 #include "local.h"
 
- int currentBehaviour = 0, currentCustomerImpatient =0,  numberOfServers = 1;
+ int currentBehaviour = 0, currentCustomerImpatient =0;
 
 void signal_catcher(int );
 void cleanUp();
 int main(int argc, char *argv[]){
 
-    
     char buff[20];
-    sprintf(buff, "%d", numberOfServers);
+    sprintf(buff, "%d", NUMBER_OF_SERVERS);
 
-    for (int i = 0 ; i < numberOfServers ; i++){
+    for (int i = 0 ; i < NUMBER_OF_SERVERS ; i++){
         switch (fork()) {
             case -1:
             perror("Cashier: fork");
@@ -24,7 +23,8 @@ int main(int argc, char *argv[]){
             return 3;
         }
     }
-        if ( sigset(2, signal_catcher) == SIG_ERR ) { // behaviour
+
+    if ( sigset(2, signal_catcher) == SIG_ERR ) { // behaviour
         perror("Sigset can not set SIGINT");
         exit(SIGINT);
     }
@@ -37,35 +37,35 @@ int main(int argc, char *argv[]){
         exit(SIGINT);
     }
 
-    int sleepTime = 10;
+    int sleepTime = 50;
     
     while(1){
-        sleep(10);
+        sleep(sleepTime);
 
         // Create Client
       
-            switch (fork()) {
-                case -1:
-                perror("Client: fork");
-                return 2;
+        switch (fork()) {
+            case -1:
+            perror("Client: fork");
+            return 2;
 
             case 0:        
             execlp("./customer", "customer", buff, "&", 0);
             perror("customer: exec");
             return 3;
-     
-            }
+    
+        }
       
     }
 }
 
 void signal_catcher(int the_sig){
-  printf("\nSignal %d received.\n", the_sig);
+  printf("\nSUPERMARKET: Signal %d received.\n", the_sig);
 
   switch(the_sig){
     case 2:
         currentBehaviour++;
-        printf("Current Behaviour: %d", currentBehaviour);
+        printf("SUPERMARKET: Current Behaviour Count Has Just Been Increased: %d\n", currentBehaviour);
         if(currentBehaviour < BEHAVIOUR_THRESHOLD){
             break;
         }
@@ -73,12 +73,14 @@ void signal_catcher(int the_sig){
         exit(2);
     case 10:
         currentCustomerImpatient++;
+        printf("SUPERMARKET: Current Impatience Count Has Just Been Increased: %d\n", currentCustomerImpatient);
         if(currentCustomerImpatient < ANGER_THRESHOLD){
             break;
         }
         cleanUp();
         exit(10);
     case 12:
+        printf("Has Just Been Notified that a child has reached the income threshold!\n");
         cleanUp();
         exit(12);
   }
@@ -89,7 +91,7 @@ void cleanUp(){
     printf("PARENT CLEANING UP!\n");
     struct MEMORY mem;
     int  pid = (int) getpid();
-     for (int i = 0 ; i < numberOfServers ; i++){
+     for (int i = 0 ; i < NUMBER_OF_SERVERS ; i++){
         key_t key = ftok(".", SEED + i);
         int mid = msgget(key, 0);
         msgctl(mid, IPC_RMID, (struct msgid_ds *) 0); /* remove first message queue*/

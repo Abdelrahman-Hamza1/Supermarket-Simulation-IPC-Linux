@@ -12,12 +12,14 @@ int main(int argc, char *argv[]){
   union semun    arg; // arg for later use
   struct msqid_ds buf; // to get info on msg queue
 
+  srand((unsigned) getpid());
+
   int behaviour = 100;
   int timeToScan = getRandom(MINIMUM_SCANNING_TIME, MAXIMUM_SCANNING_TIME); 
   int sales = 0;
 
   prctl(PR_SET_PDEATHSIG, SIGHUP); // GET A SIGNAL WHEN PARENT IS KILLED
-  srand((unsigned) getpid());
+  
 
   if(argc < 2){
     perror("CASHIER: Not enough args");
@@ -25,7 +27,7 @@ int main(int argc, char *argv[]){
   }
 
   int index = atoi(argv[1]);
-  printf("\nCASHIER: Parent Pid: %d, Index: %d\n", parent_pid, index);
+  printf("\nCASHIER: Getting Started, Parent Pid: %d, Index: %d\n", parent_pid, index);
   
   if ((key = ftok(".", SEED + index)) == -1) {    
     perror("CASHIER:  Client: key generation");
@@ -33,28 +35,32 @@ int main(int argc, char *argv[]){
   }
 
   if ((mid = msgget(key, 0 )) == -1 ) {
-    mid = msgget(key,IPC_CREAT | 0666);
+    mid = msgget(key,IPC_CREAT | 0777);
   }
-  printf("\nCASHIER: SUCCESSFULY CREATED MQ! id =  %d \n", mid);
+  printf("\nCASHIER: SUCCESSFULY CREATED Message Queue. Id =  %d \n", mid);
 
   
-    if ( (shmid = shmget((int)parent_pid + index, sizeof(memory),
-		       IPC_CREAT | 0666)) != -1 ) {
+    if ( (shmid = shmget(((int)parent_pid + index), sizeof(memory),
+		       IPC_CREAT | 0777)) != -1 ) {
     
-    if ( (shmptr = (struct MEMORY *) shmat(shmid, 0, 0)) == (char *) -1 ) {
+    if ( (shmptr = (struct MEMORY *) shmat(shmid, NULL, 0)) == (char *) -1 ) {
       perror("shmptr -- parent -- attach");
       exit(1);
     }
     //memcpy(shmptr, (struct MEMORY *) &memory, sizeof(memory));
     memory = (struct MEMORY *) shmptr;
-    printf("CASHIER: SUCCESSFULY CREATED SHMEM! id =  %d\n", shmid);
+    printf("CASHIER: SUCCESSFULY CREATED Shared Memory. Id =  %d\n", shmid);
   }
   else {
     perror("shmid -- parent -- creation");
     exit(2);
   }
 
+  int totalCost = 0 ;
+
   while(1){
+    totalCost = 0;
+
     msgctl(mid, IPC_STAT, &buf);
     printf("CASHIER: Current # of bytes on queue\t %d\n", buf.__msg_cbytes);
     printf("CASHIER: Current # of messages on queue\t %d\n", buf.msg_qnum); /* Read Queue Status to update Shared Memory*/
@@ -71,37 +77,38 @@ int main(int argc, char *argv[]){
       return 2;
     }
     printf("CASHIER: Just recieved message by : %d\nCASHIER: Now testing to see if he's still available!\n", (int)msg.clientId);
-    printf("CUSTOMER CART items count : %d\n",msg.cart.itemCount);    
+    printf("CASHIER: Number Of Items In the cart : %d\n",msg.cart.itemCount);    
     /* Handle the message (shopping cart) & calculate the total cost */
-    int totalCost = 0 ;
+    
 
     /* start by checking if the process is still alive */
 
     pid_t c_pid = msg.clientId; // REAL PID FROM MSG
     if (kill(c_pid,SIGUSR1) == 0 ){
+
       /* Message still up -> handle it */
-      printf("CASHIER: Items in the cart:\n\n");
+      printf("CASHIER: Have just verified Customer(%d) is still here.\n CASHIER:Items in the cart:\n", (int)msg.clientId);
       for(int i = 0; i<msg.cart.itemCount;i++) // something wrong about msg.cart.itemCount
       {
         printf("CASHIER: {%d} %s {Quantity: %d, price: %.2f}\n\n", index, msg.cart.items[i].name, msg.cart.items[i].quantity, msg.cart.items[i].price);
         totalCost += msg.cart.items[i].price; //increase the total coast
-        usleep(190000); // delay between priniting each item (scaning time) (change it and put cashier speed)
+        sleep(timeToScan); // delay between priniting each item (scaning time) (change it and put cashier speed)
       } 
       // print the total coast
-      printf("CASHIER: id = {%d} Finished\n Sum of prices : %d\n", index,totalCost); // regarding index is the id (from the loop) of the cashier
+      printf("CASHIER: index = {%d} Finished processing customer(%d) His total comes up to %d\n", index, (int) msg.clientId,totalCost); // regarding index is the id (from the loop) of the cashier
     }
 
 
-    printf("CASHIER:  informing client id %s\n", (int)c_pid);
-    kill(c_pid,SIGUSR2); /* LET CUSTOMER KNOW YOU'RE DONE PROCESSING THEM!.*/
+    printf("CASHIER:  informing customer(%d) that I'm done!\n", (int)msg.clientId);
+    kill(c_pid,SIGUSR2); 
 
     /* Behaviour will decrease with time, total sales will be increased aswell. Check if conditions met & send signals if so.*/
     behaviour--;
     if (behaviour == 0){
-      kill(getppid(), 2); // might have to cast ppid to int 
+      kill(getppid(), 2); 
     }
 
-    sales = sales + totalCost;
+    sales+=totalCost;
     if (sales >= INCOME_THRESHOLD){
       kill(getppid(), 12);
     }
