@@ -161,7 +161,7 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
         exit(SIGALRM);
     }
     printf("CUSTOMER: Id = %d has just sent a message and now im sleeping !\n", getpid());
-    alarm(20); // wait 20 second in the queue
+    alarm(MAXIMUM_WAITING_TIME); 
    
     while(1){
         pause();
