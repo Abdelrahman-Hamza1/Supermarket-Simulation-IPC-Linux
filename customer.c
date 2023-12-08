@@ -1,6 +1,6 @@
 #include "local.h"
 
-    int MANIMUM_SHOPPING_TIME, MAXIMUM_WAITING_TIME;
+    int MANIMUM_SHOPPING_TIME, MAXIMUM_WAITING_TIME, iamAlive = 0;;
 
 int readSuperMarketData(Item items[], int *itemCount){
     FILE* file = fopen("data.txt","r"); //open file
@@ -119,10 +119,15 @@ int bestCashier(int cashiersNumber,int weights[]){
 }
 
 void leaveQueue(int signum){
-        kill(getppid(), SIGUSR1);
-        printf("CUSTOMER {%d}: Can't wait in the queue %d\n", getpid(),getpid());
-        exit(EXIT_FAILURE);
-    }
+    if(iamAlive == 0){ //
+            kill(getppid(), SIGUSR1);
+            printf("CUSTOMER {%d}: Can't wait in the queue %d\n", getpid(),getpid());
+            exit(EXIT_FAILURE);
+        }
+      else{
+        printf("customer {%d} ALARM HAS RING, BUT IAM NOT LEAVING SINCE  ITS MY TURN\n", getpid());
+      }  
+}
 
 
 
@@ -170,13 +175,13 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
 
     
 
-    void stillAlive(int signum){
+   void stillAlive(int signum){
+        iamAlive = 1; // don't leave the supermarket
         printf("CUSTOMER {%d} yes I am still availible\n\n",getpid());
         while(1){
             pause();
         }
     }
-
     void recieveCashierMessage(int signum){
         printf("CUSTOMER: Customer %d has finished.\n", getpid());
         exit(EXIT_SUCCESS);
