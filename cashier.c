@@ -14,6 +14,13 @@ int main(int argc, char *argv[]){
 
   srand((unsigned) getpid());
 
+    int thresholds[12];
+    int count;
+    count = readThresholds(thresholds);
+    int MINIMUM_SCANNING_TIME = thresholds[4];
+    int MAXIMUM_SCANNING_TIME = thresholds[5];
+    int INCOME_THRESHOLD = thresholds[9];
+
   int behaviour = 100;
   int timeToScan = getRandom(MINIMUM_SCANNING_TIME, MAXIMUM_SCANNING_TIME); 
   int sales = 0;
@@ -114,8 +121,4 @@ int main(int argc, char *argv[]){
     }
   }
   return 0;
-}
-
-int getRandom(int min, int max){
-  return (int) (min + (rand() % (max - min)));
 }

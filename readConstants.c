@@ -1,7 +1,7 @@
-#include <stdio.h>
+#include "local.h"
 
 int readThresholds(int thresholds[]) {
-    FILE* file = fopen("thresholds.txt", "r"); // open file
+    FILE* file = fopen("thresholds.txt", "r"); 
 
     if (file == NULL) {
         printf("ERROR OPENING THE thresholds file\n");
@@ -17,27 +17,28 @@ int readThresholds(int thresholds[]) {
         thresholds[i] = value;
 
         // check if the array is full
-        if (++i >= 10) {
+        if (++i >= 12) {
             break;
         }
     }
-
-    // close the file
     fclose(file);
     return i;
 }
-
-int main() {
-    int thresholds[10];
-    int count;
-    count = readThresholds(thresholds);
-    if (count == 0) {
-        printf("Error reading thresholds\n");
-        return -1;
-    }
-    printf("Thresholds read: %d\n", count);
-    for (int i = 0; i < count; i++) {
-        printf("Threshold %d: %d\n", i + 1, thresholds[i]);
-    }
-    return 0;
+int getRandom(int min, int max){
+  return (int) (min + (rand() % (max - min)));
 }
+
+// int main() {
+//     int thresholds[10];
+//     int count;
+//     count = readThresholds(thresholds);
+//     if (count == 0) {
+//         printf("Error reading thresholds\n");
+//         return -1;
+//     }
+//     printf("Thresholds read: %d\n", count);
+//     for (int i = 0; i < count; i++) {
+//         printf("Threshold %d: %d\n", i + 1, thresholds[i]);
+//     }
+//     return 0;
+// }

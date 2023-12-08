@@ -28,7 +28,8 @@
    you receive a duplicate definition error message for semun
    then comment out the union declaration.
    */
-#define MAX_ITEMS 100
+#define MAX_ITEMS 10
+
 union semun {
   int              val;
   struct semid_ds *buf;
@@ -70,22 +71,26 @@ typedef struct {
 
 
 // Defining variables
-#define NUMBER_OF_SERVERS 2
-#define MINIMUM_ARRIVAL_RATE 10
-#define MAXIMUM_ARRIVAL_RATE 20
+// #define NUMBER_OF_SERVERS 2
+// #define MINIMUM_ARRIVAL_RATE 10
+// #define MAXIMUM_ARRIVAL_RATE 20
 
-#define MINIMUM_SHOPPING_TIME 10
-#define MANIMUM_SHOPPING_TIME 20
+// #define MINIMUM_SHOPPING_TIME 10
+// #define MANIMUM_SHOPPING_TIME 20
 
-#define MINIMUM_SCANNING_TIME 2
-#define MAXIMUM_SCANNING_TIME 5
+// #define MINIMUM_SCANNING_TIME 2
+// #define MAXIMUM_SCANNING_TIME 5
 
-#define MAXIMUM_WAITING_TIME 50
+// #define MAXIMUM_WAITING_TIME 50
 
-#define BEHAVIOUR_THRESHOLD 5
+// #define BEHAVIOUR_THRESHOLD 5
 
-#define ANGER_THRESHOLD 10
+// #define ANGER_THRESHOLD 10
 
-#define INCOME_THRESHOLD 10000
+// #define INCOME_THRESHOLD 10000
+
+
+int readThresholds(int thresholds[]);
+int getRandom(int min, int max);
 
 #endif

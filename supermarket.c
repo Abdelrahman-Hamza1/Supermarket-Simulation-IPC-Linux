@@ -1,10 +1,20 @@
 #include "local.h"
 
- int currentBehaviour = 0, currentCustomerImpatient =0;
+ int currentBehaviour = 0, currentCustomerImpatient =0, NUMBER_OF_SERVERS, MINIMUM_ARRIVAL_RATE, MAXIMUM_ARRIVAL_RATE, ANGER_THRESHOLD, BEHAVIOUR_THRESHOLD;
 
 void signal_catcher(int );
 void cleanUp();
 int main(int argc, char *argv[]){
+
+    int thresholds[12];
+    int count;
+    count = readThresholds(thresholds);
+    
+    MINIMUM_ARRIVAL_RATE = thresholds[0];
+    MAXIMUM_ARRIVAL_RATE = thresholds[1];
+    BEHAVIOUR_THRESHOLD = thresholds[7];
+    ANGER_THRESHOLD = thresholds[8];
+    NUMBER_OF_SERVERS = thresholds[11];
 
     char buff[20];
     sprintf(buff, "%d", NUMBER_OF_SERVERS);
@@ -37,7 +47,9 @@ int main(int argc, char *argv[]){
         exit(SIGINT);
     }
 
-    int sleepTime = 50;
+    int sleepTime = getRandom(MINIMUM_ARRIVAL_RATE,MAXIMUM_ARRIVAL_RATE);
+
+    printf("SUPERMARKET: ARRIVAL RATE: %d\n", sleepTime);
     
     while(1){
         sleep(sleepTime);

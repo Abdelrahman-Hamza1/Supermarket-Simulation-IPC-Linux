@@ -1,5 +1,7 @@
 #include "local.h"
 
+    int MANIMUM_SHOPPING_TIME, MAXIMUM_WAITING_TIME;
+
 int readSuperMarketData(Item items[], int *itemCount){
     FILE* file = fopen("data.txt","r"); //open file
 
@@ -169,7 +171,7 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
     
 
     void stillAlive(int signum){
-        printf("CUSTOMER {%d} yes I am still availible\n\n",getegid());
+        printf("CUSTOMER {%d} yes I am still availible\n\n",getpid());
         while(1){
             pause();
         }
@@ -182,6 +184,14 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
 
 
 int main(int args, char*argv[]){
+
+    int thresholds[12];
+    int count;
+    count = readThresholds(thresholds);
+
+    MANIMUM_SHOPPING_TIME = thresholds[3];
+    MAXIMUM_WAITING_TIME = thresholds[6];
+
     prctl(PR_SET_PDEATHSIG, SIGHUP); // GET A SIGNAL WHEN PARENT IS KILLED
     if(sigset(SIGUSR1, stillAlive) == -1){ // to handle the signal sent by the cashier to check if the customer is still alive
         perror("Sigset can not set SIGUSR1");
