@@ -221,7 +221,7 @@ int main(int args, char*argv[]){
     int wieghts[4];
     wieghts[0] = -1;
     wieghts[1] = -1;
-    wieghts[2] = 2;
+    wieghts[2] = -2;
     wieghts[3] = 1;
     int best_cashier_index = bestCashier(numberOfCashier, wieghts);
 
