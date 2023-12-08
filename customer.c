@@ -69,64 +69,41 @@ void simulateShopping(ShoppingCart *cart,Item items[], int itemCount ){
 
 }
 
-void leaveQueue(int signum){
-    kill(getppid(), SIGUSR1);
-    printf("CUSTOMER {%d}: Can't wait in the queue %d\n", getpid(),getpid());
-    exit(EXIT_FAILURE);
-}
-
-void stillAlive(int signum){
-    printf("CUSTOMER {%d} yes I am still availible\n\n",getegid());
-    while(1){
-        pause();
-    }
-}
-
-void recieveCashierMessage(int signum){
-    printf("CUSTOMER: Customer %d has finished.\n", getpid());
-    exit(EXIT_SUCCESS);
-}
-
 // double check this function since abd used struct, not typedef
 int bestCashier(int cashiersNumber,int weights[]){
-    // for loop, read from each cashier shared memory
-    pid_t ppid = getppid(); // parent pid
+    pid_t ppid = getppid();
     if (ppid == -1){
          perror("CUSTOMER: Error getting parent id\n");
         exit(EXIT_FAILURE);
     }
     printf("CUSTOMER{%d}: is currently looking for best cashier!\n", (int)getpid());
 
-    int shmId;
+    
     struct MEMORY * memory[cashiersNumber]; // to hold cashier status
     char          *shmptr;
     // connect to shared memory for each cashier
-    for(int i =0; i < cashiersNumber; i++){
-        shmId = shmget(((int)ppid) + i, sizeof(memory), 0);
+    for(int i =0 ; i < cashiersNumber; i++){
+
+        int shmId = shmget(((int)getppid() + i), 0, 0);
         if(shmId == -1){
-            perror("CUSTOMER: Error connecting to shared memory\n");
+            printf("IN loop iteration {%d} i failed to connect to shmem %d!\n", i, ((int)getppid() + i));
+            perror("CUSTOMER: Error connecting to shared memory");
             exit(EXIT_FAILURE);
         }
-        if ( (shmptr = (struct MEMORY *) shmat(shmId, 0, 0)) == (char *) -1 ) {
+        if ( (shmptr = (struct MEMORY *) shmat(shmId, NULL, 0)) == (char *) -1 ) {
             perror("shmptr -- parent -- attach");
             exit(1);
         }
-        
-        
-        // make the 'memory point to the shared memory'
         memory[i] = (struct MEMORY *)shmptr;
         printf("CUSTOMER{%d}: Just read Shmem %d\n Size %d Number of items%d time to scan %d behaviour %d\n", (int)getpid(), i, memory[i]->queueSize, memory[i]->numberOfItems , memory[i]->timeToScan, memory[i]->behaviour);
     }
 
-    // let's compare cashiers
-    int evaluation[cashiersNumber]; // to calculate rating of each cashier
+    /* The Process of finding the best cashier */
+    int evaluation[cashiersNumber]; 
     for(int i =0; i<cashiersNumber;i++){
         evaluation[i] = memory[i]->queueSize*weights[0] + memory[i]->numberOfItems * weights[1] + memory[i]->timeToScan * weights[2] + memory[i]->behaviour*weights[3];
     }
-
     int max = evaluation[0], index = 0;
-
-    // find the highest evaluation
     for(int i=0;i<cashiersNumber;i++){
         if(max < evaluation[i]){
             max=evaluation[i];
@@ -135,10 +112,15 @@ int bestCashier(int cashiersNumber,int weights[]){
     }
 
 
-
     printf("CUSTOMER{%d}: I have decided to go with cashier index = [%d] \n", (int)getpid(), index);
-    return index; // this must be modified to return the best cashier index
+    return index;
 }
+
+void leaveQueue(int signum){
+        kill(getppid(), SIGUSR1);
+        printf("CUSTOMER {%d}: Can't wait in the queue %d\n", getpid(),getpid());
+        exit(EXIT_FAILURE);
+    }
 
 
 
@@ -158,7 +140,7 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
     }
 
     // create a message
-    printf("CUSTOMER: CONNECTED TO MSGQID = %d\n", msgid);
+    printf("CUSTOMER: Id = %d CONNECTED TO MSGQID = %d\n", getpid(), msgid);
     MESSAGE msg;
     msg.msg_type = SERVER;
     msg.cart = cart;
@@ -175,13 +157,32 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
     if(sigset(SIGALRM, leaveQueue)){ // to handle the alarm signal
         perror("Sigset can not set SIGALRM");
         exit(SIGALRM);
-     }
+    }
+    printf("CUSTOMER: Id = %d has just sent a message and now im sleeping !\n", getpid());
     alarm(20); // wait 20 second in the queue
    
     while(1){
         pause();
     }
+}
 
+    
+
+    void stillAlive(int signum){
+        printf("CUSTOMER {%d} yes I am still availible\n\n",getegid());
+        while(1){
+            pause();
+        }
+    }
+
+    void recieveCashierMessage(int signum){
+        printf("CUSTOMER: Customer %d has finished.\n", getpid());
+        exit(EXIT_SUCCESS);
+    }
+
+
+int main(int args, char*argv[]){
+    prctl(PR_SET_PDEATHSIG, SIGHUP); // GET A SIGNAL WHEN PARENT IS KILLED
     if(sigset(SIGUSR1, stillAlive) == -1){ // to handle the signal sent by the cashier to check if the customer is still alive
         perror("Sigset can not set SIGUSR1");
         exit(SIGUSR1);
@@ -190,14 +191,6 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
         perror("Sigset can not set SIGUSR2");
         exit(SIGUSR2);
     }
-    // to handle the signal sent by the cashier that the payment went well.
-
-
-}
-
-
-int main(int args, char*argv[]){
-    prctl(PR_SET_PDEATHSIG, SIGHUP); // GET A SIGNAL WHEN PARENT IS KILLED
     int numberOfCashier = 0; // passed by argument
   
 
@@ -219,7 +212,7 @@ int main(int args, char*argv[]){
     // seed the random number generator with the current time
     srand(time(NULL));
     //SIMULATE SHOPPING
-    printf("\nCustomer {%d} has started shopping\n",getpid());
+    printf("CUSTOMER: {%d} has started shopping\n",getpid());
     ShoppingCart cart;
     cart.itemCount = 0;
     simulateShopping(&cart, items, itemCount);
