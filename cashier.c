@@ -1,6 +1,42 @@
 #include "local.h"
 
 int getRandom(int,int);
+void connectToGUIQueue(int flag,int total, int customerId){
+    // send MESSAGE TO MESSAGE GUI
+    //FIRST GET KEY
+    // SECOND CONNECT TO THE MESSAGE QUEUE
+    // SEND THE MESSAGE TO THE QUEUE
+    __key_t key2 = ftok(".",'h');
+     if (key2 == -1){
+        perror("CASHIER: Error creating key for the GUI QUEUE.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    //connect 
+    int msgid2 = msgget(key2, 0); // get msg queue id
+    if (msgid2 == -1){
+         perror("CASHIER: Error making the message queue for the GUI\n");
+        exit(EXIT_FAILURE);
+    }
+    //create the message
+    MESSAGEGUI guiMessage;
+    guiMessage.customerId = customerId; // must be modified
+    guiMessage.cashierId = (int) getgid(); // 
+    guiMessage.flag = flag;
+    guiMessage.msgtype = SERVER; // not sure about this also
+    guiMessage.sentBy = 0;
+    guiMessage.total = total;
+
+    // send the message
+    int error = msgsnd(msgid2,&guiMessage,sizeof(guiMessage),0);
+    if(error == -1){
+        perror("CASHIER: Error sending the message to the GUI queue\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+
+
 int main(int argc, char *argv[]){
   key_t       key; // key for generating msg queue
   pid_t       parent_pid = getppid(); // parent pid for defining the shared memory key
@@ -101,6 +137,8 @@ int main(int argc, char *argv[]){
         totalCost += msg.cart.items[i].price; //increase the total coast
         sleep(timeToScan); // delay between priniting each item (scaning time) (change it and put cashier speed)
       } 
+       // CONNECT TO GUI QUEUE
+      connectToGUIQueue(0,totalCost,(int)msg.clientId);
       // print the total coast
       printf("CASHIER: index = {%d} Finished processing customer(%d) His total comes up to %d\n", index, (int) msg.clientId,totalCost); // regarding index is the id (from the loop) of the cashier
     }
@@ -112,11 +150,15 @@ int main(int argc, char *argv[]){
     /* Behaviour will decrease with time, total sales will be increased aswell. Check if conditions met & send signals if so.*/
     behaviour--;
     if (behaviour == 0){
+      // CONNECT TO GUI QUEUE TO EXIT AND DISPLAY IN THE SCREEN
+      connectToGUIQueue(1,0,0);
       kill(getppid(), 2); 
     }
 
     sales+=totalCost;
     if (sales >= INCOME_THRESHOLD){
+      // CONNECT TO GUI QUEUE TO EXIT AND DISPLAY IN THE SCREEN
+      connectToGUIQueue(1,0,0);
       kill(getppid(), 12);
     }
   }
