@@ -36,12 +36,23 @@ union semun {
   ushort          *array; 
 };
 
-struct MEMORY {
+typedef struct {
+  long msgtype;
+  int customerId;
+  int cashierId;
+  int total;
+  int sentBy;
+  int flag;
+} MESSAGEGUI;
+
+struct MEMORY{
   int queueSize;
   int numberOfItems;
   int timeToScan;
   int behaviour;
 }; 
+
+
 
 typedef struct {
   char name[50];
