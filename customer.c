@@ -1,6 +1,7 @@
 #include "local.h"
 
-    int MANIMUM_SHOPPING_TIME, MAXIMUM_WAITING_TIME, iamAlive = 0;;
+    int MANIMUM_SHOPPING_TIME, MAXIMUM_WAITING_TIME;
+    int iamAlive = 0;
 
 int readSuperMarketData(Item items[], int *itemCount){
     FILE* file = fopen("data.txt","r"); //open file
@@ -122,13 +123,50 @@ void leaveQueue(int signum){
     if(iamAlive == 0){ //
             kill(getppid(), SIGUSR1);
             printf("CUSTOMER {%d}: Can't wait in the queue %d\n", getpid(),getpid());
+            connectTOGUIQueue(1);//connect to gui queue, pass 1 (leaving)
             exit(EXIT_FAILURE);
         }
       else{
-        printf("customer {%d} ALARM HAS RING, BUT IAM NOT LEAVING SINCE  ITS MY TURN\n", getpid());
+        // mayble add another connection to GUI queue also here
+        printf("customer {%d} ALARM HAS RING, BUT IAM NOT LEAVING SINCE  ITS MY TURN\n",getpid());
       }  
-}
+    }
 
+
+void connectTOGUIQueue(int flag){
+     // send MESSAGE TO MESSAGE GUI
+    //FIRST GET KEY
+    // SECOND CONNECT TO THE MESSAGE QUEUE
+    // SEND THE MESSAGE TO THE QUEUE
+    __key_t key2 = ftok(".",'h');
+     if (key2 == -1){
+        perror("CUSTOMER: Error creating key  GUI QUEUE.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    //connect 
+    int msgid2 = msgget(key2, 0); // get msg queue id
+    if (msgid2 == -1){
+         perror("CUSTOMER: Error making the message queue for the GUI\n");
+        exit(EXIT_FAILURE);
+    }
+    //create the message
+    MESSAGEGUI guiMessage;
+    guiMessage.customerId =(int) getgid();
+    guiMessage.cashierId = 0; // I think it must be modified, otherwise how we can show to which cashier should the customer go
+    guiMessage.flag = flag;
+    guiMessage.msgtype = SERVER;
+    guiMessage.sentBy = 1;
+    guiMessage.total = 0;
+
+    // send the message
+    int error = msgsnd(msgid2,&guiMessage,sizeof(guiMessage),0);
+    if(error == -1){
+        perror("CUSTOMER: Error sending the message to the GUI queue\n");
+        exit(EXIT_FAILURE);
+    }
+    
+}
 
 
 // here check 'SEED', and index-1 (since I have started from 1 not 0)
@@ -157,9 +195,12 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
     // send the message to the cashier
     int err = msgsnd(msgid, &msg, sizeof(msg), 0);
     if(err == -1){
-         perror("CUSTOMER: Error sending the message\n");
+         perror("CUSTOMER: Error sending the message to the cashier queue\n");
         exit(EXIT_FAILURE);
     }
+
+    connectTOGUIQueue(0); // connect to the GUI queue, and pass the floag = 0(not leaving)
+
 
     if(sigset(SIGALRM, leaveQueue)){ // to handle the alarm signal
         perror("Sigset can not set SIGALRM");
@@ -175,13 +216,14 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
 
     
 
-   void stillAlive(int signum){
+    void stillAlive(int signum){
         iamAlive = 1; // don't leave the supermarket
         printf("CUSTOMER {%d} yes I am still availible\n\n",getpid());
         while(1){
             pause();
         }
     }
+
     void recieveCashierMessage(int signum){
         printf("CUSTOMER: Customer %d has finished.\n", getpid());
         exit(EXIT_SUCCESS);
