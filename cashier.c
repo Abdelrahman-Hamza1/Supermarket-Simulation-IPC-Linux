@@ -106,7 +106,7 @@ int main(int argc, char *argv[]){
         sleep(timeToScan); // delay between priniting each item (scaning time) (change it and put cashier speed)
       } 
        // CONNECT TO GUI QUEUE
-      connectToGUIQueue(0,totalCost,(int)msg.clientId);
+      connectToGUIQueue(2,totalCost,(int)msg.clientId);
       // print the total coast
       printf("CASHIER: index = {%d} Finished processing customer(%d) His total comes up to %d\n", index, (int) msg.clientId,totalCost); // regarding index is the id (from the loop) of the cashier
     }
