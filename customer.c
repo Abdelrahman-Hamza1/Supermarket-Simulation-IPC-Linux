@@ -123,6 +123,7 @@ void leaveQueue(int signum){
     if(iamAlive == 0){ //
             kill(getppid(), SIGUSR1);
             printf("CUSTOMER {%d}: Can't wait in the queue %d\n", getpid(),getpid());
+            sleep(5);
             connectTOGUIQueue(1);//connect to gui queue, pass 1 (leaving)
             exit(EXIT_FAILURE);
         }
@@ -199,7 +200,7 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
         exit(EXIT_FAILURE);
     }
 
-    connectTOGUIQueue(0); // connect to the GUI queue, and pass the floag = 0(not leaving)
+    connectTOGUIQueue(2); // connect to the GUI queue, and pass the floag = 0(not leaving)
 
 
     if(sigset(SIGALRM, leaveQueue)){ // to handle the alarm signal
@@ -231,6 +232,8 @@ void connect_to_the_message_queue(int index, ShoppingCart cart){
 
 
 int main(int args, char*argv[]){
+    
+    connectTOGUIQueue(0);
 
     int thresholds[12];
     int count;
