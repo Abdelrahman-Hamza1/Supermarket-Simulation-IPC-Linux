@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <sys/prctl.h>
 #include <time.h>
+#include <pthread.h>
 
 /* This declaration is *MISSING* is many solaris environments.
    It should be in the <sys/sem.h> file but often is not! If 
@@ -30,11 +31,11 @@
    */
 #define MAX_ITEMS 10
 
-union semun {
-  int              val;
-  struct semid_ds *buf;
-  ushort          *array; 
-};
+// union semun {
+//   int              val;
+//   struct semid_ds *buf;
+//   ushort          *array; 
+// };
 
 typedef struct {
   long msgtype;
@@ -68,8 +69,12 @@ typedef struct {
 
 
 #define SEED   'g'		/* seed for ftok */
+#define GUISEED 'h'
 #define SERVER 1L
 #define CLIENT 0L
+#define SENTBYCASHIER 0
+#define SENTBYCUSTOMER 1
+
 
 
 typedef struct {

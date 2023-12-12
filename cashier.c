@@ -1,41 +1,7 @@
 #include "local.h"
 
 int getRandom(int,int);
-void connectToGUIQueue(int flag,int total, int customerId){
-    // send MESSAGE TO MESSAGE GUI
-    //FIRST GET KEY
-    // SECOND CONNECT TO THE MESSAGE QUEUE
-    // SEND THE MESSAGE TO THE QUEUE
-    __key_t key2 = ftok(".",'h');
-     if (key2 == -1){
-        perror("CASHIER: Error creating key for the GUI QUEUE.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    //connect 
-    int msgid2 = msgget(key2, 0); // get msg queue id
-    if (msgid2 == -1){
-         perror("CASHIER: Error making the message queue for the GUI\n");
-        exit(EXIT_FAILURE);
-    }
-    //create the message
-    MESSAGEGUI guiMessage;
-    guiMessage.customerId = customerId; // must be modified
-    guiMessage.cashierId = (int) getgid(); // 
-    guiMessage.flag = flag;
-    guiMessage.msgtype = SERVER; // not sure about this also
-    guiMessage.sentBy = 0;
-    guiMessage.total = total;
-
-    // send the message
-    int error = msgsnd(msgid2,&guiMessage,sizeof(guiMessage),0);
-    if(error == -1){
-        perror("CASHIER: Error sending the message to the GUI queue\n");
-        exit(EXIT_FAILURE);
-    }
-}
-
-
+void connectToGUIQueue(int ,int , int );
 
 int main(int argc, char *argv[]){
   key_t       key; // key for generating msg queue
@@ -45,17 +11,17 @@ int main(int argc, char *argv[]){
 
   struct  MEMORY* memory; // memory struct
   char          *shmptr; // pointer to shared memory 
-  union semun    arg; // arg for later use
+  // union semun    arg; // arg for later use
   struct msqid_ds buf; // to get info on msg queue
 
   srand((unsigned) getpid());
 
-    int thresholds[12];
-    int count;
-    count = readThresholds(thresholds);
-    int MINIMUM_SCANNING_TIME = thresholds[4];
-    int MAXIMUM_SCANNING_TIME = thresholds[5];
-    int INCOME_THRESHOLD = thresholds[9];
+  int thresholds[12];
+  int count;
+  count = readThresholds(thresholds);
+  int MINIMUM_SCANNING_TIME = thresholds[4];
+  int MAXIMUM_SCANNING_TIME = thresholds[5];
+  int INCOME_THRESHOLD = thresholds[9];
 
   int behaviour = 100;
   int timeToScan = getRandom(MINIMUM_SCANNING_TIME, MAXIMUM_SCANNING_TIME); 
@@ -98,6 +64,8 @@ int main(int argc, char *argv[]){
     perror("shmid -- parent -- creation");
     exit(2);
   }
+
+  connectToGUIQueue(0,index, 0);
 
   int totalCost = 0 ;
 
@@ -163,4 +131,37 @@ int main(int argc, char *argv[]){
     }
   }
   return 0;
+}
+void connectToGUIQueue(int flag,int total, int customerId){
+    // send MESSAGE TO MESSAGE GUI
+    //FIRST GET KEY
+    // SECOND CONNECT TO THE MESSAGE QUEUE
+    // SEND THE MESSAGE TO THE QUEUE
+    __key_t key2 = ftok(".",GUISEED);
+     if (key2 == -1){
+        perror("CASHIER: Error c'h'reating key for the GUI QUEUE.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    //connect 
+    int msgid2 = msgget(key2, 0); // get msg queue id
+    if (msgid2 == -1){
+         perror("CASHIER: Error making the message queue for the GUI\n");
+        exit(EXIT_FAILURE);
+    }
+    //create the message
+    MESSAGEGUI guiMessage;
+    guiMessage.customerId = customerId; // must be modified
+    guiMessage.cashierId = (int) getpid(); // 
+    guiMessage.flag = flag;
+    guiMessage.msgtype = SERVER; // not sure about this also
+    guiMessage.sentBy = SENTBYCASHIER;
+    guiMessage.total = total;
+
+    // send the message
+    int error = msgsnd(msgid2,&guiMessage,sizeof(guiMessage),0);
+    if(error == -1){
+        perror("CASHIER: Error sending the message to the GUI queue\n");
+        exit(EXIT_FAILURE);
+    }
 }

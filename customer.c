@@ -138,7 +138,7 @@ void connectTOGUIQueue(int flag){
     //FIRST GET KEY
     // SECOND CONNECT TO THE MESSAGE QUEUE
     // SEND THE MESSAGE TO THE QUEUE
-    __key_t key2 = ftok(".",'h');
+    __key_t key2 = ftok(".",GUISEED);
      if (key2 == -1){
         perror("CUSTOMER: Error creating key  GUI QUEUE.\n");
         exit(EXIT_FAILURE);
@@ -152,7 +152,7 @@ void connectTOGUIQueue(int flag){
     }
     //create the message
     MESSAGEGUI guiMessage;
-    guiMessage.customerId =(int) getgid();
+    guiMessage.customerId =(int) getpid();
     guiMessage.cashierId = 0; // I think it must be modified, otherwise how we can show to which cashier should the customer go
     guiMessage.flag = flag;
     guiMessage.msgtype = SERVER;
