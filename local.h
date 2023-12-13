@@ -69,7 +69,7 @@ typedef struct {
 
 
 #define SEED   'g'		/* seed for ftok */
-#define GUISEED 'h'
+#define GUISEED 'a'
 #define SERVER 1L
 #define CLIENT 0L
 #define SENTBYCASHIER 0

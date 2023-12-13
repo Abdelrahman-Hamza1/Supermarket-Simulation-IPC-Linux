@@ -36,7 +36,7 @@ int main(int argc, char *argv[]){
   }
 
   int index = atoi(argv[1]);
-  printf("\nCASHIER: Getting Started, Parent Pid: %d, Index: %d\n", parent_pid, index);
+  printf("\nCASHIER: ID = %d  Getting Started, Parent Pid: %d, Index: %d\n", (int)getpid(), parent_pid, index);
   
   if ((key = ftok(".", SEED + index)) == -1) {    
     perror("CASHIER:  Client: key generation");
@@ -73,10 +73,10 @@ int main(int argc, char *argv[]){
     totalCost = 0;
 
     msgctl(mid, IPC_STAT, &buf);
-    printf("CASHIER: Current # of bytes on queue\t %d\n", buf.__msg_cbytes);
-    printf("CASHIER: Current # of messages on queue\t %d\n", buf.msg_qnum); /* Read Queue Status to update Shared Memory*/
-    printf("CASHIER: Time to scan = %d\n", timeToScan);
-    printf("CASHIER: Behaviour = %d\n", behaviour);
+    //printf("CASHIER: Current # of bytes on queue\t %d\n", buf.__msg_cbytes);
+    //printf("CASHIER: Current # of messages on queue\t %d\n", buf.msg_qnum); /* Read Queue Status to update Shared Memory*/
+    //printf("CASHIER: Time to scan = %d\n", timeToScan);
+    //printf("CASHIER: Behaviour = %d\n", behaviour);
 
     memory->queueSize = buf.msg_qnum;
     memory->numberOfItems = buf.__msg_cbytes; // MUST DO EQUATION TO CALCULATE NUMBER OF ITEMS BASED ON SIZE -> AFTER DEFININE THE SHOPPING CART STRUCT
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]){
       return 2;
     }
     printf("CASHIER: Just recieved message by : %d\nCASHIER: Now testing to see if he's still available!\n", (int)msg.clientId);
-    printf("CASHIER: Number Of Items In the cart : %d\n",msg.cart.itemCount);    
+    //printf("CASHIER: Number Of Items In the cart : %d\n",msg.cart.itemCount);    
     /* Handle the message (shopping cart) & calculate the total cost */
     
 
@@ -98,11 +98,11 @@ int main(int argc, char *argv[]){
     if (kill(c_pid,SIGUSR1) == 0 ){
 
       /* Message still up -> handle it */
-      printf("CASHIER: Have just verified Customer(%d) is still here.\n CASHIER:Items in the cart:\n", (int)msg.clientId);
+      //printf("CASHIER: Have just verified Customer(%d) is still here.\n CASHIER:Items in the cart:\n", (int)msg.clientId);
       for(int i = 0; i<msg.cart.itemCount;i++) // something wrong about msg.cart.itemCount
       {
-        printf("CASHIER: {%d} %s {Quantity: %d, price: %.2f}\n\n", index, msg.cart.items[i].name, msg.cart.items[i].quantity, msg.cart.items[i].price);
-        printf("item price:\n", msg.cart.items[i].price);
+        //printf("CASHIER: {%d} %s {Quantity: %d, price: %.2f}\n\n", index, msg.cart.items[i].name, msg.cart.items[i].quantity, msg.cart.items[i].price);
+        //printf("item price:\n", msg.cart.items[i].price);
         totalCost += msg.cart.items[i].price; //increase the total coast
         sleep(timeToScan); // delay between priniting each item (scaning time) (change it and put cashier speed)
       } 
@@ -113,7 +113,7 @@ int main(int argc, char *argv[]){
     }
 
 
-    printf("CASHIER:  informing customer(%d) that I'm done!\n", (int)msg.clientId);
+    //printf("CASHIER:  informing customer(%d) that I'm done!\n", (int)msg.clientId);
     kill(c_pid,SIGUSR2); 
 
     /* Behaviour will decrease with time, total sales will be increased aswell. Check if conditions met & send signals if so.*/
@@ -134,28 +134,23 @@ int main(int argc, char *argv[]){
   return 0;
 }
 void connectToGUIQueue(int flag,int total, int customerId){
-    // send MESSAGE TO MESSAGE GUI
-    //FIRST GET KEY
-    // SECOND CONNECT TO THE MESSAGE QUEUE
-    // SEND THE MESSAGE TO THE QUEUE
     __key_t key2 = ftok(".",GUISEED);
      if (key2 == -1){
         perror("CASHIER: Error c'h'reating key for the GUI QUEUE.\n");
         exit(EXIT_FAILURE);
     }
 
-    //connect 
-    int msgid2 = msgget(key2, 0); // get msg queue id
+    int msgid2 = msgget(key2, 0); 
     if (msgid2 == -1){
          perror("CASHIER: Error making the message queue for the GUI\n");
         exit(EXIT_FAILURE);
     }
     //create the message
     MESSAGEGUI guiMessage;
-    guiMessage.customerId = customerId; // must be modified
-    guiMessage.cashierId = (int) getpid(); // 
+    guiMessage.customerId = customerId; 
+    guiMessage.cashierId = (int) getpid(); 
     guiMessage.flag = flag;
-    guiMessage.msgtype = SERVER; // not sure about this also
+    guiMessage.msgtype = SERVER; 
     guiMessage.sentBy = SENTBYCASHIER;
     guiMessage.total = total;
 

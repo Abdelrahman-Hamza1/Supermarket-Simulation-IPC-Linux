@@ -102,18 +102,17 @@ int main(void) {
 }
 
 void* myThreadFunction(void* args){
-  // blocking work ! 
-      key_t       key; 
+    key_t       key; 
     int mid;
     if ((key = ftok(".", GUISEED)) == -1) {    
-    perror("GUI : key generation");
-    return 1;
+      perror("GUI : key generation");
+      return 1;
     }
     if ((mid = msgget(key, 0 )) == -1 ) {
       mid = msgget(key,IPC_CREAT | 0777);
     }
 
-       printf("\nGUI: SUCCESSFULY CREATED Message Queue. Id =  %d \n", mid);
+    printf("\nGUI: SUCCESSFULY CREATED Message Queue. Id =  %d \n", mid);
 
     while(1){
 
@@ -156,6 +155,7 @@ void* myThreadFunction(void* args){
         printf("Added Customer %d!\n", msg.customerId);
         Entity ent;
         ent.id = msg.customerId;
+        ent.queue = -1;
         customers[customerCounter] = ent;
         customerCounter++;
       }
