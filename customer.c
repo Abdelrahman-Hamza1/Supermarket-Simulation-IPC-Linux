@@ -1,6 +1,8 @@
 #include "local.h"
 
-    int MANIMUM_SHOPPING_TIME, MAXIMUM_WAITING_TIME;
+    int MINIMUM_SHOPPING_TIME, MAXIMUM_WAITING_TIME;
+    int MAXIMUM_SHOPPING_TIME;
+
     int iamAlive = 0;
 
 int readSuperMarketData(Item items[], int *itemCount){
@@ -52,7 +54,8 @@ void simulateShopping(ShoppingCart *cart,Item items[], int itemCount ){
     // int shoppingTime = rand() % 6 + 5; // how many items the customer will buy
       srand(time(NULL));
     //int shoppingTime = rand() % 6 +5; // how many items the customer will buy
-     int shoppingTime = getRandom(MANIMUM_SHOPPING_TIME,MAXIMUM_WAITING_TIME);
+     int shoppingTime = getRandom(MINIMUM_SHOPPING_TIME,MAXIMUM_WAITING_TIME);
+     printf("GENERATED SHOPPING TIME:%d\n",shoppingTime);
     for(int time = 0; time< shoppingTime; time++){
         // generate random item index
         int randomItemIndedx = rand() % itemCount;
@@ -238,12 +241,7 @@ int main(int args, char*argv[]){
     
     connectTOGUIQueue(0);
 
-    // int thresholds[12];
-    // int count;
-    // count = readThresholds(thresholds);
 
-    // MANIMUM_SHOPPING_TIME = thresholds[3];
-    // MAXIMUM_WAITING_TIME = thresholds[6];
 
     int thresholds[12];
     int count;
@@ -251,6 +249,12 @@ int main(int args, char*argv[]){
     MAXIMUM_SHOPPING_TIME = thresholds[3];
     MINIMUM_SHOPPING_TIME = thresholds[2];
     MAXIMUM_WAITING_TIME = thresholds[6];
+
+    printf("MAXIMUM SHOPPING TIME: %d", MAXIMUM_SHOPPING_TIME);
+    printf("MINIMUN SHOPPING TIME: %d", MINIMUM_SHOPPING_TIME);
+    printf("Waiting TIME: %d", MAXIMUM_WAITING_TIME);
+
+
 
     prctl(PR_SET_PDEATHSIG, SIGHUP); // GET A SIGNAL WHEN PARENT IS KILLED
     if(sigset(SIGUSR1, stillAlive) == -1){ // to handle the signal sent by the cashier to check if the customer is still alive
