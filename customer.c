@@ -49,7 +49,10 @@ void addToCart(ShoppingCart *cart, Item*item){
 
 void simulateShopping(ShoppingCart *cart,Item items[], int itemCount ){
     // simulate customer shopping for a random time (e.g 5 to 10 seconds)
-    int shoppingTime = rand() % 6 + 5; // how many items the customer will buy
+    // int shoppingTime = rand() % 6 + 5; // how many items the customer will buy
+      srand(time(NULL));
+    //int shoppingTime = rand() % 6 +5; // how many items the customer will buy
+     int shoppingTime = getRandom(MANIMUM_SHOPPING_TIME,MAXIMUM_WAITING_TIME);
     for(int time = 0; time< shoppingTime; time++){
         // generate random item index
         int randomItemIndedx = rand() % itemCount;
@@ -235,11 +238,18 @@ int main(int args, char*argv[]){
     
     connectTOGUIQueue(0);
 
+    // int thresholds[12];
+    // int count;
+    // count = readThresholds(thresholds);
+
+    // MANIMUM_SHOPPING_TIME = thresholds[3];
+    // MAXIMUM_WAITING_TIME = thresholds[6];
+
     int thresholds[12];
     int count;
     count = readThresholds(thresholds);
-
-    MANIMUM_SHOPPING_TIME = thresholds[3];
+    MAXIMUM_SHOPPING_TIME = thresholds[3];
+    MINIMUM_SHOPPING_TIME = thresholds[2];
     MAXIMUM_WAITING_TIME = thresholds[6];
 
     prctl(PR_SET_PDEATHSIG, SIGHUP); // GET A SIGNAL WHEN PARENT IS KILLED
