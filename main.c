@@ -22,7 +22,7 @@ typedef struct Ents{
 void* myThreadFunction(void* );
 int main(void) {
   int screenWidth = 800;
-  int screenHeight = 600;
+  int screenHeight = 700;
 
   InitWindow(screenWidth, screenHeight, "Supermarket");
   
@@ -64,18 +64,16 @@ int main(void) {
 
     if (customerCounter > 0){
         char **customerStrings = (char **)malloc(customerCounter * sizeof(char *));
-        for (int i = 0; i < customerCounter; ++i) {
+        int baseX = 200;
+        int baseY = 20;
+        int stepSizeCustomer = screenHeight / customerCounter; // assuming 600 is constant & counter is always larger than 1. 
+        for (int i = 0 ; i < customerCounter ; i++){
             customerStrings[i] = (char *)malloc(100);
             snprintf(customerStrings[i], 100, "id: %d, total: %d, queue: %d", customers[i].id, customers[i].total, customers[i].queue);
-        }
-        int baseX = 100;
-        int baseY = 20;
-        int stepSizeCustomer = 600 / customerCounter; // assuming 600 is constant & counter is always larger than 1. 
-        for (int i = 0 ; i < customerCounter ; i++){
-        /* FOR EACH CUSTOMER:  CALCULATE LOCATION &  PLACE IT WITH IT'S TEXT! */
-
-            DrawRectangle(baseX, ( baseY  + stepSizeCustomer*(i+1)) % 600 , width, height, rectangleColor);
-            DrawTextEx(font, customerStrings[i], (Vector2){baseX , ( baseY  + stepSizeCustomer*(i+1)) % 600}, font.baseSize, 0.0f, textColor);
+            //printf("2.Cashier string %s  cashier count = %d\n", customerStrings[i],cashierCounter);
+            const char * text = customerStrings[i];
+            DrawRectangle(baseX, ( baseY  + stepSizeCustomer*(i+1)) % screenHeight , width, height, rectangleColor);
+            DrawTextEx(font, customerStrings[i], (Vector2){baseX , ( baseY  + stepSizeCustomer*(i+1)) % screenHeight}, font.baseSize, 0.0f, textColor);
         }
     }
 
@@ -83,14 +81,14 @@ int main(void) {
         char **cashierStrings = (char **)malloc(cashierCounter * sizeof(char *));
         int baseCASHX = 600;
         int baseCASHY = 20;
-        int stepSizeCashier = 600 / cashierCounter; // assuming 600 is constant & counter is always larger than 1. 
+        int stepSizeCashier = screenHeight / cashierCounter; // assuming 600 is constant & counter is always larger than 1. 
         for (int i = 0 ; i < cashierCounter ; i++){
             cashierStrings[i] = (char *)malloc(100);
             snprintf(cashierStrings[i], 100, "id: %d, total: %d, queue: %d", cashiers[i].id, cashiers[i].total, cashiers[i].queue);
-            printf("2.Cashier string %s  cashier count = %d\n", cashierStrings[i],cashierCounter);
+            //printf("2.Cashier string %s  cashier count = %d\n", cashierStrings[i],cashierCounter);
             const char * text = cashierStrings[i];
-            DrawRectangle(baseCASHX, ( baseCASHY + stepSizeCashier*(i+1) ) % 600 , width, height, rectangleColor);
-            DrawTextEx(font, text, (Vector2){baseCASHX , ( baseCASHY + stepSizeCashier*(i+1)  ) % 600 }, font.baseSize, 0.0f, textColor);
+            DrawRectangle(baseCASHX, ( baseCASHY + stepSizeCashier*(i+1) ) % screenHeight , width, height, rectangleColor);
+            DrawTextEx(font, text, (Vector2){baseCASHX , ( baseCASHY + stepSizeCashier*(i+1)  ) % screenHeight }, font.baseSize, 0.0f, textColor);
         }
     }
 
@@ -115,10 +113,11 @@ void* myThreadFunction(void* args){
       mid = msgget(key,IPC_CREAT | 0777);
     }
 
+       printf("\nGUI: SUCCESSFULY CREATED Message Queue. Id =  %d \n", mid);
+
     while(1){
 
-   printf("\nGUI: SUCCESSFULY CREATED Message Queue. Id =  %d \n", mid);
-      MESSAGEGUI msg; 
+    MESSAGEGUI msg; 
     int n = msgrcv(mid, &msg, sizeof(msg), SERVER, 0);
     
     if (msg.sentBy == 0 & n != -1){
@@ -138,6 +137,7 @@ void* myThreadFunction(void* args){
         }
       }
       else if (msg.flag == 0){ // addition!
+        printf("Added Cashier %d!\n", msg.cashierId);
         Entity ent;
         ent.id = msg.cashierId;
         ent.queue = msg.total;
@@ -153,6 +153,7 @@ void* myThreadFunction(void* args){
         customerCounter--;
       }
       else if (msg.flag == 0){
+        printf("Added Customer %d!\n", msg.customerId);
         Entity ent;
         ent.id = msg.customerId;
         customers[customerCounter] = ent;

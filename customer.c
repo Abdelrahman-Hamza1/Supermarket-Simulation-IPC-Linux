@@ -49,7 +49,7 @@ void addToCart(ShoppingCart *cart, Item*item){
 
 void simulateShopping(ShoppingCart *cart,Item items[], int itemCount ){
     // simulate customer shopping for a random time (e.g 5 to 10 seconds)
-    int shoppingTime = rand() % 6 +5; // how many items the customer will buy
+    int shoppingTime = rand() % 6 + 5; // how many items the customer will buy
     for(int time = 0; time< shoppingTime; time++){
         // generate random item index
         int randomItemIndedx = rand() % itemCount;
@@ -289,7 +289,4 @@ int main(int args, char*argv[]){
     connect_to_the_message_queue(best_cashier_index, cart);
 
     return 0;
-
-
-
 }
