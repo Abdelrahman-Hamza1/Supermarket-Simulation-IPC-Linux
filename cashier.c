@@ -3,14 +3,16 @@
 int getRandom(int,int);
 void connectToGUIQueue(int ,int , int );
 void handler(int );
+int shmid;
+char          *shmptr; // pointer to shared memory 
 int main(int argc, char *argv[]){
   key_t       key; // key for generating msg queue
   pid_t       parent_pid = getppid(); // parent pid for defining the shared memory key
-  int         mid, n,shmid; // msg queue id, n for reading ( will store char count) , shmid (shared memory id)
+  int         mid, n; // msg queue id, n for reading ( will store char count) , shmid (shared memory id)
   MESSAGE     msg; // instance of message struct 
 
   struct  MEMORY* memory; // memory struct
-  char          *shmptr; // pointer to shared memory 
+  
   // union semun    arg; // arg for later use
   struct msqid_ds buf; // to get info on msg queue
 
@@ -52,14 +54,14 @@ int main(int argc, char *argv[]){
   
     if ( (shmid = shmget(((int)parent_pid + index), sizeof(memory),
 		       IPC_CREAT | 0777)) != -1 ) {
-    
-    if ( (shmptr = (struct MEMORY *) shmat(shmid, NULL, 0)) == (char *) -1 ) {
-      perror("shmptr -- parent -- attach");
-      exit(1);
-    }
-    //memcpy(shmptr, (struct MEMORY *) &memory, sizeof(memory));
-    memory = (struct MEMORY *) shmptr;
-    printf("CASHIER: SUCCESSFULY CREATED Shared Memory. Id =  %d\n", shmid);
+        
+        if ( (shmptr = (struct MEMORY *) shmat(shmid, NULL, 0)) == (char *) -1 ) {
+          perror("shmptr -- parent -- attach");
+          exit(1);
+        }
+        //memcpy(shmptr, (struct MEMORY *) &memory, sizeof(memory));
+        memory = (struct MEMORY *) shmptr;
+        printf("CASHIER: SUCCESSFULY CREATED Shared Memory. Id =  %d\n", shmid);
   }
   else {
     perror("shmid -- parent -- creation");
@@ -164,6 +166,12 @@ void connectToGUIQueue(int flag,int total, int customerId){
 }
 void handler(int interruptNumber){
 	// add logic of detaching and removing shmem
+   if(shmdt(shmptr) == -1){
+    perror("SHMDT");
+    exit(EXIT_FAILURE);
 
+   }
+   int  pid = (int) getpid();
+   shmctl(shmid, IPC_RMID, (struct shmid_ds *) 0);
 	exit(1);
 }	
