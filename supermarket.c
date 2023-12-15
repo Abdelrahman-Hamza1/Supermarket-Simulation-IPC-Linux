@@ -109,7 +109,7 @@ void cleanUp(){
         msgctl(mid, IPC_RMID, (struct msgid_ds *) 0); /* remove first message queue*/
         
         
-        int shmid = shmget(pid + i, sizeof(mem), 0); // POSSIBLE: CHANGE LAST ARG TO 0 
-        shmctl(shmid, IPC_RMID, (struct shmid_ds *) 0);
+        // int shmid = shmget(pid + i, sizeof(mem), 0); // POSSIBLE: CHANGE LAST ARG TO 0 
+        // shmctl(shmid, IPC_RMID, (struct shmid_ds *) 0);
      }
 }
