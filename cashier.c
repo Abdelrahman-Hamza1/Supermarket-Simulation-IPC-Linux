@@ -2,7 +2,7 @@
 
 int getRandom(int,int);
 void connectToGUIQueue(int ,int , int );
-
+void handler(int );
 int main(int argc, char *argv[]){
   key_t       key; // key for generating msg queue
   pid_t       parent_pid = getppid(); // parent pid for defining the shared memory key
@@ -27,7 +27,8 @@ int main(int argc, char *argv[]){
   int timeToScan = getRandom(MINIMUM_SCANNING_TIME, MAXIMUM_SCANNING_TIME); 
   int sales = 0;
 
-  prctl(PR_SET_PDEATHSIG, SIGHUP); // GET A SIGNAL WHEN PARENT IS KILLED
+  prctl(PR_SET_PDEATHSIG, SIGHUP); 
+  sigset(SIGHUP,handler);
   
 
   if(argc < 2){
@@ -161,3 +162,8 @@ void connectToGUIQueue(int flag,int total, int customerId){
         exit(EXIT_FAILURE);
     }
 }
+void handler(int interruptNumber){
+	// add logic of detaching and removing shmem
+
+	exit(1);
+}	
